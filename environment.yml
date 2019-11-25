@@ -6,7 +6,7 @@ dependencies:
   - pip:
     - -e .
     - flake8-isort==2.7.0
-    - urban-footprinter==0.0.1    
+    - urban-footprinter==0.0.1
   - setuptools
   - wheel
   - click
@@ -23,3 +23,4 @@ dependencies:
   - laspy
   - geopandas
   - rasterio
+  - opencv

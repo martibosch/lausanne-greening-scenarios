@@ -1,4 +1,4 @@
-.PHONY: agglom_lulc
+.PHONY: agglom_lulc agglom_landsat
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -77,6 +77,32 @@ $(AGGLOM_LULC_DIR): | $(DATA_INTERIM_DIR)
 $(AGGLOM_LULC_TIF): $(CADASTRE_SHP) $(MAKE_AGGLOM_LULC_PY) | $(AGGLOM_LULC_DIR)
 	python $(MAKE_AGGLOM_LULC_PY) $< $@
 agglom_lulc: $(AGGLOM_LULC_TIF)
+
+
+#################################################################################
+# Crop landsat files to the urban extent and stack them in a multiband raster
+
+## 1. Download and untar the landsat data
+### variables
+LANDSAT_DIR := $(DATA_RAW_DIR)/landsat
+LANDSAT_FILE_KEY = landsat/LE07_L1TP_196028_20120313_20161202_01_T1.tar.gz
+AGGLOM_LANDSAT_DIR := $(DATA_INTERIM_DIR)/agglom_landsat
+AGGLOM_LANDSAT_TIF := $(AGGLOM_LANDSAT_DIR)/agglom_landsat.tif
+
+#### code
+MAKE_LANDSAT_RASTER_PY := $(CODE_DATA_DIR)/make_landsat_raster.py
+
+### rules
+$(LANDSAT_DIR): | $(DATA_RAW_DIR)
+	mkdir $@
+$(AGGLOM_LANDSAT_DIR): | $(DATA_INTERIM_DIR)
+	mkdir $@
+$(LANDSAT_DIR)/%.tar.gz: $(DOWNLOAD_S3_PY) | $(LANDSAT_DIR)
+	python $(DOWNLOAD_S3_PY) $(LANDSAT_FILE_KEY) $@
+$(AGGLOM_LANDSAT_DIR)/%.tif: $(LANDSAT_DIR)/%.tar.gz $(MAKE_LANDSAT_RASTER_PY) \
+	| $(AGGLOM_LANDSAT_DIR)
+	python $(MAKE_LANDSAT_RASTER_PY) $< $(AGGLOM_LULC_TIF) $@
+agglom_landsat: $(AGGLOM_LANDSAT_TIF)
 
 
 #################################################################################
