@@ -1,4 +1,4 @@
-.PHONY: agglom_lulc agglom_landsat
+.PHONY: agglom_lulc agglom_landsat train_test_split agglom_trees
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -45,7 +45,7 @@ DOWNLOAD_S3_PY := $(CODE_UTILS_DIR)/download_s3.py
 
 ### variables
 CADASTRE_DIR := $(DATA_RAW_DIR)/cadastre
-CADASTRE_FILE_KEY = cantons/asit-vd/Cadastre_agglomeration.zip
+CADASTRE_FILE_KEY = cantons/asit-vd/cadastre/Cadastre_agglomeration.zip
 CADASTRE_UNZIP_FILEPATTERN := \
 	Cadastre/(NPCS|MOVD)_CAD_TPR_(BATHS|CSBOIS|CSDIV|CSDUR|CSEAU|CSVERT)_S.*
 CADASTRE_SHP := $(CADASTRE_DIR)/cadastre.shp
@@ -103,6 +103,126 @@ $(AGGLOM_LANDSAT_DIR)/%.tif: $(LANDSAT_DIR)/%.tar.gz $(MAKE_LANDSAT_RASTER_PY) \
 	| $(AGGLOM_LANDSAT_DIR)
 	python $(MAKE_LANDSAT_RASTER_PY) $< $(AGGLOM_LULC_TIF) $@
 agglom_landsat: $(AGGLOM_LANDSAT_TIF)
+
+
+#################################################################################
+# Generate 1m raster of tree/non-tree pixels
+
+## 1. Download SWISSIMAGE
+
+### variables
+SWISSIMAGE_DIR := $(DATA_RAW_DIR)/swissimage
+SWISSIMAGE_FILE_KEY = swissimage/1m/lausanne/swissimage1m_latest_lausanne_uhi.tif
+SWISSIMAGE_TIF := $(SWISSIMAGE_DIR)/swissimage.tif
+
+### rules
+$(SWISSIMAGE_DIR): | $(DATA_RAW_DIR)
+	mkdir $@
+$(SWISSIMAGE_TIF): $(DOWNLOAD_S3_PY) | $(SWISSIMAGE_DIR)
+	python $(DOWNLOAD_S3_PY) $(SWISSIMAGE_FILE_KEY) $@
+
+## 2. Split SWISSIMAGE tif into tiles
+
+### variables
+SWISSIMAGE_TILES_DIR := $(DATA_INTERIM_DIR)/swissimage_tiles
+SWISSIMAGE_TILES_CSV := $(SWISSIMAGE_TILES_DIR)/swissimage_tiles.csv
+#### code
+CODE_TREES_DIR := $(CODE_DIR)/trees
+MAKE_SWISSIMAGE_TILES_PY := $(CODE_TREES_DIR)/make_swissimage_tiles.py
+
+### rules
+$(SWISSIMAGE_TILES_DIR): | $(DATA_INTERIM_DIR)
+	mkdir $@
+$(SWISSIMAGE_TILES_CSV): $(SWISSIMAGE_TIF) $(AGGLOM_LULC_TIF) \
+	$(MAKE_SWISSIMAGE_TILES_PY) | $(SWISSIMAGE_TILES_DIR)
+	python $(MAKE_SWISSIMAGE_TILES_PY) $< $(AGGLOM_LULC_TIF) \
+		$(SWISSIMAGE_TILES_DIR) $@
+
+## 3. Compute the train/test split
+
+### variables
+SPLIT_CSV := $(SWISSIMAGE_TILES_DIR)/split.csv
+NUM_COMPONENTS = 24
+NUM_TILE_CLUSTERS = 4
+
+### rules
+$(SPLIT_CSV): $(SWISSIMAGE_TILES_CSV)
+	detectree train-test-split --img-dir $(SWISSIMAGE_TILES_DIR) \
+		--output-filepath $(SPLIT_CSV) \
+		--num-components $(NUM_COMPONENTS) \
+		--num-img-clusters $(NUM_TILE_CLUSTERS)
+# train_test_split: $(SPLIT_CSV)
+
+## 4. Make the response tiles from LIDAR data
+
+### variables
+RESPONSE_TILES_DIR := $(DATA_INTERIM_DIR)/response_tiles
+RESPONSE_TILES_CSV := $(RESPONSE_TILES_DIR)/response_tiles.csv
+#### code
+MAKE_RESPONSE_TILES_PY := $(CODE_TREES_DIR)/make_response_tiles.py
+
+### rules
+$(RESPONSE_TILES_DIR): | $(DATA_INTERIM_DIR)
+	mkdir $@
+$(RESPONSE_TILES_CSV): $(SPLIT_CSV) $(MAKE_RESPONSE_TILES_PY) \
+	| $(RESPONSE_TILES_DIR)
+	python $(MAKE_RESPONSE_TILES_PY) $(SPLIT_CSV) $(RESPONSE_TILES_DIR) $@
+# response_tiles: $(RESPONSE_TILES_CSV)
+
+## 5. Train a classifier for each tile cluster
+
+### variables
+MODELS_DIR = models
+MODEL_JOBLIB_FILEPATHS := $(foreach CLUSTER_LABEL, \
+	$(shell seq 0 $$(($(NUM_TILE_CLUSTERS)-1))), \
+	$(MODELS_DIR)/$(CLUSTER_LABEL).joblib)
+
+### rules
+$(MODELS_DIR):
+	mkdir $@
+$(MODELS_DIR)/%.joblib: $(RESPONSE_TILES_CSV) | $(MODELS_DIR)
+	detectree train-classifier --split-filepath $(SPLIT_CSV) \
+		--response-img-dir $(RESPONSE_TILES_DIR) --img-cluster $* \
+		--output-filepath $@
+# train_models: $(MODEL_JOBLIB_FILEPATHS)
+
+## 6. Classify the tiles
+
+### variables
+CLASSIFIED_TILES_DIR := $(DATA_INTERIM_DIR)/classified_tiles
+CLASSIFIED_TILES_CSV_FILEPATHS := $(foreach CLUSTER_LABEL, \
+	$(shell seq 0 $$(($(NUM_TILE_CLUSTERS)-1))), \
+	$(CLASSIFIED_TILES_DIR)/$(CLUSTER_LABEL).csv)
+#### code
+PREDICT_TILES_PY := $(CODE_TREES_DIR)/predict_tiles.py
+
+### rules
+$(CLASSIFIED_TILES_DIR): | $(DATA_INTERIM_DIR)
+	mkdir $@
+$(CLASSIFIED_TILES_DIR)/%.csv: $(MODELS_DIR)/%.joblib $(PREDICT_TILES_PY) \
+	| $(CLASSIFIED_TILES_DIR)
+	python $(PREDICT_TILES_PY) $(SPLIT_CSV) $< $(CLASSIFIED_TILES_DIR) $@ \
+		--img-cluster $(notdir $(basename $@))
+# classify_tiles: $(CLASSIFIED_TILES_CSV_FILEPATHS)
+
+## 7. Mosaic the classified and response tiles into a single file
+
+### variables
+AGGLOM_TREES_DIR := $(DATA_INTERIM_DIR)/agglom_trees
+AGGLOM_TREES_TIF := $(AGGLOM_TREES_DIR)/agglom_trees.tif
+TREE_NODATA = 0  # shouldn't be ugly hardcoded like that...
+
+### rules
+$(AGGLOM_TREES_DIR): | $(DATA_INTERIM_DIR)
+	mkdir $@
+$(AGGLOM_TREES_TIF): $(RESPONSE_TILES_CSV) $(CLASSIFIED_TILES_CSV_FILEPATHS) \
+	| $(AGGLOM_TREES_DIR)
+	gdal_merge.py -o $(DATA_INTERIM_DIR)/foo.tif -n $(TREE_NODATA) \
+		$(wildcard $(CLASSIFIED_TILES_DIR)/*.tif) \
+		$(wildcard $(RESPONSE_TILES_DIR)/*.tif)
+	gdalwarp -t_srs EPSG:2056 $(DATA_INTERIM_DIR)/foo.tif $@
+	rm $(DATA_INTERIM_DIR)/foo.tif
+agglom_trees: $(AGGLOM_TREES_TIF)
 
 
 #################################################################################

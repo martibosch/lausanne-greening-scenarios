@@ -5,6 +5,7 @@ dependencies:
   - pip
   - pip:
     - -e .
+    - detectree==0.2.0
     - flake8-isort==2.7.0
     - urban-footprinter==0.0.1
   - setuptools
@@ -21,6 +22,8 @@ dependencies:
   - tqdm
   - numpy<=1.16
   - laspy
+  - lastools
+  - laszip  
   - geopandas
   - rasterio
   - opencv
