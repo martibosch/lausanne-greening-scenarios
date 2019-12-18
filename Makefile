@@ -33,7 +33,6 @@ $(foreach DATA_SUB_DIR, \
 
 ## variables
 ### code
-CODE_DATA_DIR := $(CODE_DIR)/data
 CODE_UTILS_DIR := $(CODE_DIR)/utils
 DOWNLOAD_S3_PY := $(CODE_UTILS_DIR)/download_s3.py
 
@@ -51,7 +50,8 @@ CADASTRE_UNZIP_FILEPATTERN := \
 CADASTRE_SHP := $(CADASTRE_DIR)/cadastre.shp
 
 #### code
-CADASTRE_SHP_FROM_ZIP_PY := $(CODE_DATA_DIR)/shp_from_zip.py
+CODE_LULC_DIR := $(CODE_DIR)/lulc
+CADASTRE_SHP_FROM_ZIP_PY := $(CODE_LULC_DIR)/shp_from_zip.py
 
 
 ### rules
@@ -68,7 +68,7 @@ $(CADASTRE_DIR)/%.shp: $(CADASTRE_DIR)/%.zip $(CADASTRE_SHP_FROM_ZIP_PY)
 
 ### variables
 AGGLOM_LULC_DIR := $(DATA_INTERIM_DIR)/agglom_lulc
-MAKE_AGGLOM_LULC_PY := $(CODE_DATA_DIR)/make_agglom_lulc.py
+MAKE_AGGLOM_LULC_PY := $(CODE_LULC_DIR)/make_agglom_lulc.py
 AGGLOM_LULC_TIF := $(AGGLOM_LULC_DIR)/agglom_lulc.tif
 
 ### rules
@@ -90,7 +90,8 @@ AGGLOM_LANDSAT_DIR := $(DATA_INTERIM_DIR)/agglom_landsat
 AGGLOM_LANDSAT_TIF := $(AGGLOM_LANDSAT_DIR)/agglom_landsat.tif
 
 #### code
-MAKE_LANDSAT_RASTER_PY := $(CODE_DATA_DIR)/make_landsat_raster.py
+CODE_SPECTRAL_DIR := $(CODE_DIR)/spectral
+MAKE_LANDSAT_RASTER_PY := $(CODE_SPECTRAL_DIR)/make_landsat_raster.py
 
 ### rules
 $(LANDSAT_DIR): | $(DATA_RAW_DIR)
@@ -210,6 +211,7 @@ $(CLASSIFIED_TILES_DIR)/%.csv: $(MODELS_DIR)/%.joblib $(PREDICT_TILES_PY) \
 ### variables
 AGGLOM_TREES_DIR := $(DATA_INTERIM_DIR)/agglom_trees
 AGGLOM_TREES_TIF := $(AGGLOM_TREES_DIR)/agglom_trees.tif
+TEMP_AGGLOM_TREES_TIF := $(AGGLOM_TREES_DIR)/foo.tif
 TREE_NODATA = 0  # shouldn't be ugly hardcoded like that...
 
 ### rules
@@ -217,11 +219,11 @@ $(AGGLOM_TREES_DIR): | $(DATA_INTERIM_DIR)
 	mkdir $@
 $(AGGLOM_TREES_TIF): $(RESPONSE_TILES_CSV) $(CLASSIFIED_TILES_CSV_FILEPATHS) \
 	| $(AGGLOM_TREES_DIR)
-	gdal_merge.py -o $(DATA_INTERIM_DIR)/foo.tif -n $(TREE_NODATA) \
+	gdal_merge.py -o $(TEMP_AGGLOM_TREES_TIF) -n $(TREE_NODATA) \
 		$(wildcard $(CLASSIFIED_TILES_DIR)/*.tif) \
 		$(wildcard $(RESPONSE_TILES_DIR)/*.tif)
-	gdalwarp -t_srs EPSG:2056 $(DATA_INTERIM_DIR)/foo.tif $@
-	rm $(DATA_INTERIM_DIR)/foo.tif
+	gdalwarp -t_srs EPSG:2056 $(TEMP_AGGLOM_TREES_TIF) $@
+	rm $(TEMP_AGGLOM_TREES_TIF)
 agglom_trees: $(AGGLOM_TREES_TIF)
 
 
