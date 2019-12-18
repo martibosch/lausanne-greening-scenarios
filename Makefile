@@ -1,4 +1,4 @@
-.PHONY: agglom_lulc agglom_landsat train_test_split agglom_trees
+.PHONY: agglom_lulc agglom_landsat train_test_split agglom_trees reclassify
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -225,6 +225,47 @@ $(AGGLOM_TREES_TIF): $(RESPONSE_TILES_CSV) $(CLASSIFIED_TILES_CSV_FILEPATHS) \
 	gdalwarp -t_srs EPSG:2056 $(TEMP_AGGLOM_TREES_TIF) $@
 	rm $(TEMP_AGGLOM_TREES_TIF)
 agglom_trees: $(AGGLOM_TREES_TIF)
+
+
+#################################################################################
+# Reclassify LULC codes according to tree and building cover distribution
+
+### variables
+BIOPHYSICAL_TABLE_FILE_KEY := other/biophysical_table.csv
+BIOPHYSICAL_TABLE_CSV := $(DATA_RAW_DIR)/biophysical_table.csv
+DATA_RECLASSIF_DIR := $(DATA_INTERIM_DIR)/reclassif
+TREE_COVER_TIF := $(DATA_RECLASSIF_DIR)/tree_cover.tif
+BUILDING_COVER_TIF := $(DATA_RECLASSIF_DIR)/building_cover.tif
+RECLASSIF_TABLE_CSV := $(DATA_PROCESSED_DIR)/reclassif_table.csv
+RECLASSIF_LULC_TIF := $(DATA_PROCESSED_DIR)/reclassif_extract.tif
+
+#### code
+CODE_RECLASSIFY_DIR := $(CODE_DIR)/reclassify
+GET_PIXEL_TREE_COVER_PY := $(CODE_RECLASSIFY_DIR)/get_pixel_tree_cover.py
+GET_PIXEL_BUILDING_COVER_PY := $(CODE_RECLASSIFY_DIR)/get_pixel_building_cover.py
+RECLASSIFY_PY := $(CODE_RECLASSIFY_DIR)/reclassify.py
+
+### rules
+$(DATA_RECLASSIF_DIR): | $(DATA_INTERIM_DIR)
+	mkdir $@
+$(BIOPHYSICAL_TABLE_CSV): $(DOWNLOAD_S3_PY) | $(DATA_RAW_DIR)
+	python $(DOWNLOAD_S3_PY) $(BIOPHYSICAL_TABLE_FILE_KEY) $@
+$(TREE_COVER_TIF): $(AGGLOM_LULC_TIF) $(AGGLOM_TREES_TIF) \
+	$(GET_PIXEL_TREE_COVER_PY) | $(DATA_RECLASSIF_DIR)
+	python $(GET_PIXEL_TREE_COVER_PY) $(AGGLOM_LULC_TIF) $(AGGLOM_TREES_TIF) \
+		$@
+$(BUILDING_COVER_TIF): $(AGGLOM_LULC_TIF) $(CADASTRE_SHP) \
+	$(GET_PIXEL_BUILDING_COVER_PY) | $(DATA_RECLASSIF_DIR)
+	python $(GET_PIXEL_BUILDING_COVER_PY) $(AGGLOM_LULC_TIF) \
+		$(CADASTRE_SHP) $@
+$(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV): $(TREE_COVER_TIF) \
+	$(BUILDING_COVER_TIF) $(BIOPHYSICAL_TABLE_CSV) $(RECLASSIFY_PY)
+	python $(RECLASSIFY_PY) $(AGGLOM_LULC_TIF) $(TREE_COVER_TIF) \
+		$(BUILDING_COVER_TIF) $(BIOPHYSICAL_TABLE_CSV) \
+		$(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV)
+#### Rule with multiple targets https://bit.ly/35B8YdU
+$(RECLASSIF_TABLE_CSV): $(RECLASSIF_LULC_TIF)
+reclassify: $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV)
 
 
 #################################################################################
