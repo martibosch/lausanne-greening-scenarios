@@ -1,4 +1,4 @@
-.PHONY: agglom_lulc agglom_landsat train_test_split agglom_trees reclassify
+.PHONY: agglom_lulc agglom_trees reclassify agglom_landsat 
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -32,6 +32,7 @@ $(foreach DATA_SUB_DIR, \
 # Utilities to be used in several tasks
 
 ## variables
+CRS = EPSG:2056
 ### code
 CODE_UTILS_DIR := $(CODE_DIR)/utils
 DOWNLOAD_S3_PY := $(CODE_UTILS_DIR)/download_s3.py
@@ -70,40 +71,16 @@ $(CADASTRE_DIR)/%.shp: $(CADASTRE_DIR)/%.zip $(CADASTRE_SHP_FROM_ZIP_PY)
 AGGLOM_LULC_DIR := $(DATA_INTERIM_DIR)/agglom_lulc
 MAKE_AGGLOM_LULC_PY := $(CODE_LULC_DIR)/make_agglom_lulc.py
 AGGLOM_LULC_TIF := $(AGGLOM_LULC_DIR)/agglom_lulc.tif
+AGGLOM_EXTENT_SHP := $(AGGLOM_LULC_DIR)/agglom_extent.shp
 
 ### rules
 $(AGGLOM_LULC_DIR): | $(DATA_INTERIM_DIR)
 	mkdir $@
-$(AGGLOM_LULC_TIF): $(CADASTRE_SHP) $(MAKE_AGGLOM_LULC_PY) | $(AGGLOM_LULC_DIR)
-	python $(MAKE_AGGLOM_LULC_PY) $< $@
-agglom_lulc: $(AGGLOM_LULC_TIF)
-
-
-#################################################################################
-# Crop landsat files to the urban extent and stack them in a multiband raster
-
-## 1. Download and untar the landsat data
-### variables
-LANDSAT_DIR := $(DATA_RAW_DIR)/landsat
-LANDSAT_FILE_KEY = landsat/LE07_L1TP_196028_20120313_20161202_01_T1.tar.gz
-AGGLOM_LANDSAT_DIR := $(DATA_INTERIM_DIR)/agglom_landsat
-AGGLOM_LANDSAT_TIF := $(AGGLOM_LANDSAT_DIR)/agglom_landsat.tif
-
-#### code
-CODE_SPECTRAL_DIR := $(CODE_DIR)/spectral
-MAKE_LANDSAT_RASTER_PY := $(CODE_SPECTRAL_DIR)/make_landsat_raster.py
-
-### rules
-$(LANDSAT_DIR): | $(DATA_RAW_DIR)
-	mkdir $@
-$(AGGLOM_LANDSAT_DIR): | $(DATA_INTERIM_DIR)
-	mkdir $@
-$(LANDSAT_DIR)/%.tar.gz: $(DOWNLOAD_S3_PY) | $(LANDSAT_DIR)
-	python $(DOWNLOAD_S3_PY) $(LANDSAT_FILE_KEY) $@
-$(AGGLOM_LANDSAT_DIR)/%.tif: $(LANDSAT_DIR)/%.tar.gz $(MAKE_LANDSAT_RASTER_PY) \
-	| $(AGGLOM_LANDSAT_DIR)
-	python $(MAKE_LANDSAT_RASTER_PY) $< $(AGGLOM_LULC_TIF) $@
-agglom_landsat: $(AGGLOM_LANDSAT_TIF)
+$(AGGLOM_LULC_TIF) $(AGGLOM_EXTENT_SHP): $(CADASTRE_SHP) $(MAKE_AGGLOM_LULC_PY) \
+	| $(AGGLOM_LULC_DIR)
+	python $(MAKE_AGGLOM_LULC_PY) $< $(AGGLOM_LULC_TIF) $(AGGLOM_EXTENT_SHP)
+$(AGGLOM_EXTENT_SHP): $(AGGLOM_LULC_TIF)
+agglom_lulc: $(AGGLOM_LULC_TIF) $(AGGLOM_EXTENT_SHP)
 
 
 #################################################################################
@@ -222,7 +199,7 @@ $(AGGLOM_TREES_TIF): $(RESPONSE_TILES_CSV) $(CLASSIFIED_TILES_CSV_FILEPATHS) \
 	gdal_merge.py -o $(TEMP_AGGLOM_TREES_TIF) -n $(TREE_NODATA) \
 		$(wildcard $(CLASSIFIED_TILES_DIR)/*.tif) \
 		$(wildcard $(RESPONSE_TILES_DIR)/*.tif)
-	gdalwarp -t_srs EPSG:2056 $(TEMP_AGGLOM_TREES_TIF) $@
+	gdalwarp -t_srs $(CRS) $(TEMP_AGGLOM_TREES_TIF) $@
 	rm $(TEMP_AGGLOM_TREES_TIF)
 agglom_trees: $(AGGLOM_TREES_TIF)
 
@@ -259,13 +236,76 @@ $(BUILDING_COVER_TIF): $(AGGLOM_LULC_TIF) $(CADASTRE_SHP) \
 	python $(GET_PIXEL_BUILDING_COVER_PY) $(AGGLOM_LULC_TIF) \
 		$(CADASTRE_SHP) $@
 $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV): $(TREE_COVER_TIF) \
-	$(BUILDING_COVER_TIF) $(BIOPHYSICAL_TABLE_CSV) $(RECLASSIFY_PY)
+	$(BUILDING_COVER_TIF) $(BIOPHYSICAL_TABLE_CSV) $(RECLASSIFY_PY) \
+	| $(DATA_PROCESSED_DIR)
 	python $(RECLASSIFY_PY) $(AGGLOM_LULC_TIF) $(TREE_COVER_TIF) \
 		$(BUILDING_COVER_TIF) $(BIOPHYSICAL_TABLE_CSV) \
 		$(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV)
 #### Rule with multiple targets https://bit.ly/35B8YdU
 $(RECLASSIF_TABLE_CSV): $(RECLASSIF_LULC_TIF)
 reclassify: $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV)
+
+
+#################################################################################
+# Generate SP raster
+
+## 1. Crop landsat files to the urban extent and stack them in a multiband raster
+
+### variables
+LANDSAT_DIR := $(DATA_RAW_DIR)/landsat
+# LANDSAT_FILE_KEY = landsat/LE07_L1TP_196028_20120313_20161202_01_T1.tar.gz
+AGGLOM_LANDSAT_DIR := $(DATA_INTERIM_DIR)/agglom_landsat
+# LC08_L1TP_196028_20180712_20180717_01_T1.tif
+# LE07_L1TP_196028_20180602_20180628_01_T1.tif
+# LE07_L1TP_195028_20180915_20181011_01_T1.tif
+# TODO: remove also LE07_L1TP_195028_20180729_20180824_01_T1.tif?
+AGGLOM_LANDSAT_TIF_FILEPATHS := $(addprefix $(AGGLOM_LANDSAT_DIR), \
+	LC08_L1TP_195028_20180518_20180604_01_T1.tif \
+	LC08_L1TP_196028_20180525_20180605_01_T1.tif \
+	LC08_L1TP_195028_20180619_20180703_01_T1.tif \
+	LC08_L1TP_196028_20180626_20180704_01_T1.tif)
+
+#### code
+CODE_LANDSAT_DIR := $(CODE_DIR)/landsat
+MAKE_AGGLOM_LANDSAT_PY := $(CODE_LANDSAT_DIR)/make_agglom_landsat.py
+
+### rules
+$(LANDSAT_DIR): | $(DATA_RAW_DIR)
+	mkdir $@
+$(AGGLOM_LANDSAT_DIR): | $(DATA_INTERIM_DIR)
+	mkdir $@
+$(LANDSAT_DIR)/%.tar.gz: $(DOWNLOAD_S3_PY) | $(LANDSAT_DIR)
+	python $(DOWNLOAD_S3_PY) landsat/$(notdir $@) $@
+$(AGGLOM_LANDSAT_DIR)/%.tif: $(LANDSAT_DIR)/%.tar.gz $(MAKE_AGGLOM_LANDSAT_PY) \
+	| $(AGGLOM_LANDSAT_DIR)
+	python $(MAKE_AGGLOM_LANDSAT_PY) $< $(AGGLOM_EXTENT_SHP) $@
+agglom_landsat: $(AGGLOM_LANDSAT_TIF_FILEPATHS)
+
+## 2. Use spectral mixture analysis to estimate SP
+
+### variables
+AGGLOM_SP_DIR := $(DATA_INTERIM_DIR)/agglom_sp
+
+#### validation
+NUM_VALIDATION_REGIONS = 6
+LANDSAT_VALIDATION_DIR := $(LANDSAT_DIR)/validation
+LANDSAT_VALIDATION_FILE_KEY = \
+	landsat/LC08_L1TP_196028_20151109_20170402_01_T1.tar.gz
+DSM_DIR := $(DATA_RAW_DIR)/dsm-2015
+DSM_FILE_KEYS = $(foreach REGION_I, \
+	$(shell seq 0 $$(($(NUM_VALIDATION_REGIONS)-1))), \
+	cantons/asit-vd/lidar-2015/dsm/validation_region_$(REGION_I).zip)
+
+
+### rules
+$(AGGLOM_SP_DIR): | $(DATA_INTERIM_DIR)
+	mkdir $@
+#### validation
+$(LANDSAT_VALIDATION_DIR): | $(LANDSAT_DIR)
+	mkdir $@
+$(DSM_DIR): | $(DATA_RAW_DIR)
+	mkdir $@
+# $(LANDSAT_VALIDATION_DIR)
 
 
 #################################################################################

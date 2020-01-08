@@ -4,10 +4,7 @@ import os
 import click
 import detectree as dtr
 import geopandas as gpd
-import numpy as np
 import rasterio as rio
-from rasterio import features
-from scipy import ndimage as ndi
 from shapely import geometry
 
 from lausanne_heat_islands import settings
@@ -18,18 +15,17 @@ SIEVE_SIZE = 10
 
 @click.command()
 @click.argument('swissimage_filepath', type=click.Path(exists=True))
-@click.argument('agglom_lulc_filepath', type=click.Path(exists=True))
+@click.argument('agglom_extent_filepath', type=click.Path(exists=True))
 @click.argument('dst_tiles_dir', type=click.Path(exists=True))
 @click.argument('dst_filepath', type=click.Path())
-@click.option('--exclude-lake', default=True, required=False)
 @click.option('--tile-width', type=int, default=512, required=False)
 @click.option('--tile-height', type=int, default=512, required=False)
 @click.option('--dst-filename', required=False)
 @click.option('--only-full-tiles', default=True, required=False)
 @click.option('--keep-empty-tiles', default=False, required=False)
-def main(swissimage_filepath, agglom_lulc_filepath, dst_tiles_dir,
-         dst_filepath, exclude_lake, tile_width, tile_height, dst_filename,
-         only_full_tiles, keep_empty_tiles):
+def main(swissimage_filepath, agglom_extent_filepath, dst_tiles_dir,
+         dst_filepath, tile_width, tile_height, dst_filename, only_full_tiles,
+         keep_empty_tiles):
     logger = logging.getLogger(__name__)
     logger.info("splitting %s into %d x %d tiles", swissimage_filepath,
                 tile_width, tile_height)
@@ -50,32 +46,34 @@ def main(swissimage_filepath, agglom_lulc_filepath, dst_tiles_dir,
         with rio.open(img_filepath) as src:
             return geometry.box(*src.bounds)
 
-    with rio.open(agglom_lulc_filepath) as src:
-        agglom_mask = src.dataset_mask()
+    # with rio.open(agglom_lulc_filepath) as src:
+    #     agglom_mask = src.dataset_mask()
 
-        if exclude_lake:
-            lulc_arr = src.read(1)
-            label_arr = ndi.label(lulc_arr == LULC_WATER_VAL,
-                                  ndi.generate_binary_structure(2, 2))[0]
-            cluster_label = np.argmax(
-                np.unique(label_arr, return_counts=True)[1][1:]) + 1
-            # lake_mask = label_arr == cluster_label
-            agglom_mask = agglom_mask.astype(bool)
-            agglom_mask &= label_arr != cluster_label
-            agglom_mask = features.sieve(agglom_mask.astype(np.uint8),
-                                         size=SIEVE_SIZE) * 255
+    #     if exclude_lake:
+    #         lulc_arr = src.read(1)
+    #         label_arr = ndi.label(lulc_arr == LULC_WATER_VAL,
+    #                               ndi.generate_binary_structure(2, 2))[0]
+    #         cluster_label = np.argmax(
+    #             np.unique(label_arr, return_counts=True)[1][1:]) + 1
+    #         # lake_mask = label_arr == cluster_label
+    #         agglom_mask = agglom_mask.astype(bool)
+    #         agglom_mask &= label_arr != cluster_label
+    #         agglom_mask = features.sieve(agglom_mask.astype(np.uint8),
+    #                                      size=SIEVE_SIZE) * 255
 
-        agglom_mask_gdf = gpd.GeoDataFrame(geometry=[
-            geometry.shape([(geom, 1) for geom, val in features.shapes(
-                agglom_mask, transform=src.transform) if val == 255][0][0])
-        ],
-                                           crs=src.crs)
-        with rio.open(swissimage_filepath) as swissimage_src:
-            tiles_gdf = gpd.GeoDataFrame(
-                img_filepaths,
-                columns=['img_filepath'],
-                geometry=list(map(bbox_geom_from_img_filepath, img_filepaths)),
-                crs=swissimage_src.crs).to_crs(src.crs)
+    #     agglom_mask_gdf = gpd.GeoDataFrame(geometry=[
+    #         geometry.shape([(geom, 1) for geom, val in features.shapes(
+    #             agglom_mask, transform=src.transform) if val == 255][0][0])
+    #     ],
+    #                                        crs=src.crs)
+    agglom_mask_gdf = gpd.read_file(agglom_extent_filepath)
+
+    with rio.open(swissimage_filepath) as swissimage_src:
+        tiles_gdf = gpd.GeoDataFrame(
+            img_filepaths,
+            columns=['img_filepath'],
+            geometry=list(map(bbox_geom_from_img_filepath, img_filepaths)),
+            crs=swissimage_src.crs).to_crs(agglom_mask_gdf.crs)
 
     # Stay tuned to https://github.com/geopandas/geopandas/issues/921
     agglom_tiles_ser = gpd.sjoin(tiles_gdf,
