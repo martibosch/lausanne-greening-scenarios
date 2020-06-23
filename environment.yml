@@ -1,0 +1,42 @@
+name: lausanne-greening-scenarios
+channels:
+  - conda-forge
+dependencies:
+  - pip
+  - pip:
+    - -e .
+    - flake8-isort==2.7.0
+    - invest-ucm-calibration==0.4.1
+    - natcap.invest==3.8.0
+    - git+git://github.com/woodcrafty/PyETo.git@0b7ac9f149f4c89c5b5759a875010c521aa07f0f
+    - pygeoprocessing==1.9.2
+    - pylandsat==0.2
+    - salem==0.3.0
+    - git+git://github.com/martibosch/swiss-uhi-utils.git@0166029edc611ef8544942dbc1ea3408fe1ded15
+  - setuptools
+  - wheel
+  - click
+  - sphinx
+  - coverage
+  - flake8
+  - awscli  
+  - python-dotenv>=0.5.1
+  - python=3
+  - ipykernel
+  - boto3
+  - descartes
+  - fsspec
+  - gdal<3.0
+  - geopandas
+  - joblib
+  - netcdf4
+  - pandas
+  - pylandstats>=2.1.3
+  - pysal
+  - rasterio
+  - s3fs
+  - scikit-image
+  - seaborn<=0.11
+  - swisslandstats-geopy>=0.8.0
+  - tqdm
+  - xarray
