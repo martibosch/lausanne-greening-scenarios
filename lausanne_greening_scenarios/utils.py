@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import pylandsats as pls
+import pylandstats as pls
 import rasterio as rio
 import statsmodels.api as sm
 from numpy.lib import stride_tricks
@@ -19,7 +19,7 @@ LABEL_DICT = {
 
 BASE_MASK = geometry.Point(6.6327025, 46.5218269)
 BASE_MASK_CRS = 'epsg:4326'
-BUFFER_DISTS = np.arange(1000, 15000, 1000)
+BUFFER_DISTS = np.arange(1000, 16000, 2000)
 
 
 def get_reclassif_landscape(lulc_raster_filepath, biophysical_table_filepath):
@@ -67,10 +67,10 @@ def get_buffer_analysis(landscape,
                               landscape_transform=landscape_meta['transform'])
 
 
-def get_zonal_analysis(landscape,
-                       landscape_meta,
-                       zone_pixel_width=60,
-                       zone_pixel_height=60):
+def get_zonal_grid_analysis(landscape,
+                            landscape_meta,
+                            zone_pixel_width=60,
+                            zone_pixel_height=60):
     return pls.ZonalGridAnalysis(
         landscape,
         zone_pixel_width=zone_pixel_width,
@@ -79,19 +79,19 @@ def get_zonal_analysis(landscape,
         landscape_transform=landscape_meta['transform'])
 
 
-def get_zonal_t_arrs(t_arr, zga):
+def get_zonal_grid_t_arrs(t_arr, zga):
     # TODO: use `skimage.util.view_as_blocks`?
     # zone_pixel_height, zone_pixel_width = zga.landscapes[
     #     0].landscape_arr.shape
     # zone_shape = np.array([zone_pixel_height, zone_pixel_width])
     zone_shape = zga.landscapes[0].landscape_arr.shape
-    num_zone_rows, num_zone_cols = zga.masks_arr.shape
+    _, num_zone_rows, num_zone_cols = zga.masks_arr.shape
     return stride_tricks.as_strided(
         t_arr,
-        shape=(num_zone_rows, num_zone_cols) + tuple(zone_shape),
-        strides=tuple(t_arr.strides * zone_shape) +
+        shape=(num_zone_rows, num_zone_cols) + zone_shape,
+        strides=tuple(t_arr.strides * np.array(zone_shape)) +
         t_arr.strides).reshape((num_zone_cols * num_zone_rows, ) +
-                               tuple(zone_shape))[zga.data_zones]
+                               zone_shape)[zga.data_zones]
 
 
 def get_linear_regression_summary(metrics_df, class_val, zonal_t_arrs):

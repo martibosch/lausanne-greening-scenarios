@@ -33,7 +33,8 @@ def daily_df_from_meteoswiss_zip(zip_filepath, landsat_datetimes, tair_column):
 @click.argument('landsat_tiles_filepath', type=click.Path(exists=True))
 @click.argument('station_data_dir', type=click.Path(exists=True))
 @click.argument('dst_filepath', type=click.Path())
-def main(landsat_tiles_filepath, station_data_dir, dst_filepath):
+@click.option('--hour', default=21)
+def main(landsat_tiles_filepath, station_data_dir, dst_filepath, hour):
     logger = logging.getLogger(__name__)
 
     # # read calibration dates
@@ -53,8 +54,9 @@ def main(landsat_tiles_filepath, station_data_dir, dst_filepath):
 
     # for each date, get the datetime for the hour for which we want to get
     # the temperature
+    hour_td = datetime.timedelta(hours=hour)
     landsat_datetimes = [
-        landsat_date + HOUR_TD for landsat_date in landsat_dates
+        landsat_date + hour_td for landsat_date in landsat_dates
     ]
 
     # assemble a data frame of station temperature measurements

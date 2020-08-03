@@ -85,7 +85,7 @@ def main(agglom_lulc_filepath, biophysical_table_filepath, ref_et_filepath,
             {
                 param_key: param_value
                 for param_key, param_value in zip(
-                    iuc.settings.DEFAULT_MODEL_PARAMS, solution)
+                    iuc.settings.DEFAULT_UCM_PARAMS, solution)
             }, dst)
     logger.info("dumped calibrated parameters (R^2=%f) to %s", 1 - cost,
                 dst_filepath)
