@@ -1,4 +1,4 @@
-.PHONY: reclassify station_measurements lst ref_et tair_ucm
+.PHONY: reclassify swiss_dem station_measurements lst ref_et tair_ucm
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -125,6 +125,32 @@ reclassify: $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV)
 ### variables
 
 ### rules
+
+
+#################################################################################
+# DEM
+
+DHM200_DIR := $(DATA_RAW_DIR)/dhm200
+DHM200_URI = \
+	https://data.geo.admin.ch/ch.swisstopo.digitales-hoehenmodell_25/data.zip
+DHM200_ASC := $(DHM200_DIR)/DHM200.asc
+SWISS_DEM_TIF := $(DATA_INTERIM_DIR)/swiss-dem.tif
+
+### rules
+$(DHM200_DIR): | $(DATA_RAW_DIR)
+	mkdir $@
+$(DHM200_DIR)/%.zip: | $(DHM200_DIR)
+	wget $(DHM200_URI) -O $@
+$(DHM200_DIR)/%.asc: $(DHM200_DIR)/%.zip
+	unzip -j $< 'data/DHM200*' -d $(DHM200_DIR)
+	touch $@
+#### reproject ASCII grid. See https://bit.ly/2WEBxoL
+TEMP_VRT := $(DATA_INTERIM_DIR)/temp.vrt
+$(SWISS_DEM_TIF): $(DHM200_ASC)
+	gdalwarp -s_srs EPSG:21781 -t_srs $(CRS) -of vrt $< $(TEMP_VRT)
+	gdal_translate -of GTiff $(TEMP_VRT) $@
+	rm $(TEMP_VRT)
+swiss_dem: $(SWISS_DEM_TIF)
 
 
 #################################################################################

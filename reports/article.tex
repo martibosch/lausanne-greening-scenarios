@@ -281,7 +281,7 @@ Finally, the $T_{air}$ values of each pixel $T_i^{no \, mix}$ are spatially aver
 
 
 
-\subsection*{Refining LULC classes based on tree cover and building density}
+\subsubsection*{Refining LULC classes based on tree cover and building density}
 \label{sec:refin-lulc-class}
 
 To better account for the spatial heterogeneity of cities, a procedure to redefine the LULC classes from the cadastral survey has been designed, which further distinguishes the LULC classes depending on their proportional cover of both trees and buildings. Such reclassification is based on combining the 10~m raster LULC map with two 1~m binary raster masks, one for the tree canopy raster and another for the buildings. % , and consists of three main steps.
@@ -303,6 +303,12 @@ Secondly, the set of 10~m pixels of each LULC class are grouped into a user-defi
 % cartesian product
 Finally, the two histograms are joined so that each LULC class is further refined into a set of subclasses. For example, if two bins were used for both the tree and building cover, the ``sidewalk'' LULC code might be further refined into ``sidewalk with low tree/low building cover'', ``sidewalk with low tree/high building cover'', ``sidewalk with high tree/low building cover'' and ``sidewalk with high tree/high building cover''.
 In the present work, four equally spaced bins have been used to reclassify both the tree and building cover in order to obtain a more fine-grained LULC representation.
+
+\subsection*{Relationships between the spatial pattern of tree canopy on urban heat mitigation}
+
+In order to explore the relationships between the \cite{rey2010pysal}
+
+
 
 \subsection*{Generation of greening scenarios}
 
@@ -351,6 +357,33 @@ Based on related studies, four spatial metrics have been chosen to quantify both
 % % Among the other LULC classes, with 85.1~\%, 85~\% and 87.5~\%``sidewalk'', ``other impervious'' and ``garden''
 % The other LULC classes all have at least 85~\% of its pixels with a building cover under 25~\%.
 % % TODO: joint distribution?
+
+
+\subsection*{Relationship between }
+
+\begin{table}[H]
+  \begin{center}
+    \begin{tabular}{ p{.3\textwidth} p{.15\textwidth} c }
+      \toprule
+      Station & Operator & Elevation [m.a.s.l] \\
+      \midrule
+      Bourg-en-Lavaux & Agrometeo & 519 \\
+      Marcelin & Agrometeo & 436 \\
+      Chandel M/13 & ASTRA & 680 \\  
+      Morges & ASTRA & 380 \\
+      Sorges & ASTRA & 500 \\
+      Lausanne C\'esar-Roux & BAFU & 426 \\
+      Bussigny & DGE & 429 \\
+      Lausanne Plaines-du-Loup & DGE & 598 \\
+      Morges & DGE & 376 \\
+      Pully & MeteoSwiss & 426 \\
+      Lausanne Freiland & WSL & 795 \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  % \caption{\label{tab:stations} Air temperature measurement stations with their operator and their elevation in meters above sea level. The operators are: Agrometeo, Federal roads office (ASTRA), Federal office for the environment (BAFU), General directorate for the environment of the Canton of Vaud (DGE), and the Federal Institute of Forest, Snow and Landscape Research (WSL) \cite{rebetez2018meteorological}. The source comma-separated value (CSV) file used in the computational workflow is available at \url{https://github.com/martibosch/lausanne-heat-islands/blob/master/data/raw/tair-stations/station-locations.csv}.}
+  % \textbf{Table S2.} Air temperature measurement stations with their operator and their elevation in meters above sea level. The operators are: Agrometeo, Federal roads office (ASTRA), Federal office for the environment (BAFU), General directorate for the environment of the Canton of Vaud (DGE), and the Federal Institute of Forest, Snow and Landscape Research (WSL) \cite{rebetez2018meteorological}. The source comma-separated value (CSV) file used in the computational workflow is available at \url{https://github.com/martibosch/lausanne-heat-islands/blob/master/data/raw/tair-stations/station-locations.csv}.
+\end{table}
 
 
 \subsection*{Evaluation of greening scenarios}

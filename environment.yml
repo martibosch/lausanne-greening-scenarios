@@ -12,7 +12,7 @@ dependencies:
     - pygeoprocessing==1.9.2
     - pylandsat==0.2
     - salem==0.2.4
-    - git+git://github.com/martibosch/swiss-uhi-utils.git@cbb5ad98418e67bcee2e26abbecc9bbd3748d166
+    - git+git://github.com/martibosch/swiss-uhi-utils.git@0e26f08371fc2e23e130f6f5612b4ce6990f3d60
   - setuptools
   - wheel
   - click
@@ -31,7 +31,8 @@ dependencies:
   - joblib
   - netcdf4
   - pandas
-  - pylandstats
+  - pylandstats>=2.1.2
+  - pysal
   - rasterio
   - s3fs
   - scikit-image
