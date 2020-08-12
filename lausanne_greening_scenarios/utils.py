@@ -2,7 +2,9 @@ import numpy as np
 import pandas as pd
 import pylandstats as pls
 import rasterio as rio
+import salem
 import statsmodels.api as sm
+import swiss_uhi_utils as suhi
 import xarray as xr
 from numpy.lib import stride_tricks
 from shapely import geometry
@@ -45,6 +47,14 @@ def get_reclassif_landscape(lulc_raster_filepath, biophysical_table_filepath):
 
     return pls.Landscape(reclassif_arr, res=lulc_res,
                          lulc_nodata=NODATA_CLASS), lulc_meta
+
+
+def get_hottest_day_t_arr(t_da_filepath, lulc_raster_filepath):
+    lulc_da = salem.open_xr_dataset(lulc_raster_filepath)['data']
+    t_da = suhi.align_ds(xr.open_dataarray(t_da_filepath), lulc_da)
+    hottest_day_da = t_da.isel(time=t_da.groupby('time').max(
+        dim=['x', 'y']).argmax())
+    return hottest_day_da.values
 
 
 def get_buffer_analysis(landscape,
