@@ -1,191 +1,100 @@
-\documentclass[10pt,letterpaper]{article}
-\usepackage[top=0.85in,left=2.75in,footskip=0.75in,marginparwidth=2in]{geometry}
-
-% use Unicode characters - try changing the option if you run into troubles with special characters (e.g. umlauts)
-\usepackage[utf8]{inputenc}
-
-% clean citations
-\usepackage{cite}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    INSTITUTE OF PHYSICS PUBLISHING                                   %
+%                                                                      %
+%   `Preparing an article for publication in an Institute of Physics   %
+%    Publishing journal using LaTeX'                                   %
+%                                                                      %
+%    LaTeX source code `ioplau2e.tex' used to generate `author         %
+%    guidelines', the documentation explaining and demonstrating use   %
+%    of the Institute of Physics Publishing LaTeX preprint files       %
+%    `iopart.cls, iopart12.clo and iopart10.clo'.                      %
+%                                                                      %
+%    `ioplau2e.tex' itself uses LaTeX with `iopart.cls'                %
+%                                                                      %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%
+% First we have a character check
+%
+% ! exclamation mark    " double quote  
+% # hash                ` opening quote (grave)
+% & ampersand           ' closing quote (acute)
+% $ dollar              % percent       
+% ( open parenthesis    ) close paren.  
+% - hyphen              = equals sign
+% | vertical bar        ~ tilde         
+% @ at sign             _ underscore
+% { open curly brace    } close curly   
+% [ open square         ] close square bracket
+% + plus sign           ; semi-colon    
+% * asterisk            : colon
+% < open angle bracket  > close angle   
+% , comma               . full stop
+% ? question mark       / forward slash 
+% \ backslash           ^ circumflex
+%
+% ABCDEFGHIJKLMNOPQRSTUVWXYZ 
+% abcdefghijklmnopqrstuvwxyz 
+% 1234567890
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\documentclass[12pt]{iopart}
+% \newcommand{\gguide}{{\it Preparing graphics for IOP Publishing journals}}
+%Uncomment next line if AMS fonts required
+%\usepackage{iopams}
 
 % hyperref makes references clicky. use \url{www.example.com} or \href{www.example.com}{description} to add a clicky url
 \usepackage{nameref,hyperref}
 
-% line numbers
-\usepackage[right]{lineno}
-
-% improves typesetting in LaTeX
-\usepackage{microtype}
-\DisableLigatures[f]{encoding = *, family = * }
-
-% text layout - change as needed
-\raggedright
-\setlength{\parindent}{0.5cm}
-\textwidth 5.25in 
-\textheight 8.75in
-
-% Remove % for double line spacing
-%\usepackage{setspace} 
-%\doublespacing
-
-% use adjustwidth environment to exceed text width (see examples in text)
-\usepackage{changepage}
-
-% adjust caption style
-\usepackage[aboveskip=1pt,labelfont=bf,labelsep=period,singlelinecheck=off]{caption}
-
-% remove brackets from references
-\makeatletter
-\renewcommand{\@biblabel}[1]{\quad#1.}
-\makeatother
-
-% headrule, footrule and page numbers
-\usepackage{lastpage,fancyhdr,graphicx}
-\usepackage{epstopdf}
-\pagestyle{myheadings}
-\pagestyle{fancy}
-\fancyhf{}
-\rfoot{\thepage/\pageref{LastPage}}
-\renewcommand{\footrule}{\hrule height 2pt \vspace{2mm}}
-\fancyheadoffset[L]{2.25in}
-\fancyfootoffset[L]{2.25in}
-
-% use \textcolor{color}{text} for colored text (e.g. highlight to-do areas)
-\usepackage{color}
-
-% define custom colors (this one is for figure captions)
-\definecolor{Gray}{gray}{.25}
-
-% this is required to include graphics
-\usepackage{graphicx}
-
-% use if you want to put caption to the side of the figure - see example in text
-\usepackage{sidecap}
-
-% use for have text wrap around figures
-\usepackage{wrapfig}
-\usepackage[pscoord]{eso-pic}
-\usepackage[fulladjust]{marginnote}
-\reversemarginpar
-
 % for better-looking tables
 \usepackage{booktabs}
-
-% math utils
-\usepackage{amsmath}
 
 % symbols
 \usepackage{gensymb}
 
-% % citation aliases
-% \usepackage{natbib}
-% % https://tex.stackexchange.com/questions/323868/setting-two-different-aliases-name-2016-name-2016-with-defcitealias
-% \newcommand{\mycitet}[1]{\citetalias{#1} (\citeyear{#1})}
-% \newcommand{\mycitep}[1]{(\citetalias{#1} \citeyear{#1})}
 
-% force floats in sections
-\usepackage{float}
-
-% document begins here
 \begin{document}
-\vspace*{0.35in}
 
-% \defcitealias{arezh2018bodenbedeckung}{ARE}
-% \defcitealias{asitvd2018structure}{ASIT VD}
-% \defcitealias{bve2019mopube}{BVE}
+% \title[Author guidelines for IOP Publishing journals in  \LaTeXe]{How to prepare and submit an article for publication in an IOP Publishing journal using \LaTeXe}
 
+\author{Mart\'i Bosch$^1$}
 
-% title goes here:
-\begin{flushleft}
-{\Large
-\textbf\newline{}
-}
-\newline
-% authors go here:
-\\
-% Mart\'i Bosch\textsuperscript{*},
-% Maxence Locatelli,
-% J\'er\^ome Chenal
-% \\
-% \bigskip
-% Urban and Regional Planning Community (CEAT), \'Ecole Polytechnique F\'ed\'erale de Lausanne (EPFL), Lausanne, Switzerland
-% \\ 
-\bigskip
-* Corresponding author: marti.bosch@epfl.ch
+\address{$^1$ Urban and Regional Planning Community (CEAT), \'Ecole Polytechnique F\'ed\'erale de Lausanne (EPFL), Lausanne, Switzerland}
+\ead{marti.bosch@epfl.ch}
 
-\end{flushleft}
+\begin{abstract}
 
-\section*{Abstract}
+\end{abstract}
 
-% A reusable computational workflow to assess urban heat islands in Python
-
-% We show how remote sensing data, air temperature measurements and cadastral datasets can be used to simulate urban heat islands with the urban cooling model of the InVEST software platform.
-
-% The global increase of urban populations brings new challenges to urban planning and policy making.
-% In the context of climate change, urban heat mitigation is a major priority for many cities that are exposed to rising temperatures and heat waves.
-% To that end, it is central to understand the relationship between the spatial pattern of urban land cover and the intensity and distribution of urban heat islands.
-% % With the increasing availability of satellite imagery,
-% The former can be easily evaluated given the wide availability of cadastral and land use/land cover dataset. In order to estimate the latter, most studies exploit remote sensing data to compute the land surface temperature.
-% While most research suggests a significant relationships between the spatial composition and configuration of urban tree canopy and the distribution of land surface temperature, many contradicting results regarding the magnitude and direction of such correlations have been reported.
-% Overall, two major weaknesses might be noted in such approaches. 
-% On the one hand, land surface temperature cannot fully represent human exposure to heat, which is better represented by air temperature.
-% On the other hand, and most importantly, even when accounting for spatial autocorrelation, statistical approaches are hard to relate to the physical mechanisms driving urban heat islands and therefore can hardly elighten the understanding of the phenomenon.
-
-% % The proposed approach represents two major improvements over existing approaches.
-% % On the one hand, air temperature estimates based on station measurements provide more suitable representation of human exposure to heat.
-% % On the one hand, air temperature provides a better representation of the human exposure to heat than land surface temperature.
-% % On the other hand, even when accounting for spatial autocorrelation, statistical approaches are hard to relate to the physical mechanisms driving urban heat islands and therefore can hardly elighten the understanding of the phenomenon.
-% The aim of this presentation is to propose a reusable computational workflow to model urban heat islands that addresses the shortcomings reviewed above.
-% The approach is based on the urban cooling model of the InVEST software platform, which models the urban air temperature as a function of three main physical mechanisms, namely the shade, evapotranspiration and albedo.
-% The proposed method requires four main inputs, which are a categorical land cover raster map, a biophysical table containing model information of each LULC class of the map, a high-resolution tree canopy map, and a reference evapotranspiration raster. The computational workflow consists of three steps.
-% Firstly, a supervised learning approach combines openly available satellite data and air temperature measurements from monitoring stations in order to downscale the latter and obtain a map of air temperature at an appropriate resolution. Such map will then serve two purposes, i.e., to compute the input reference evapotranspiration raster, and to calibrate the urban cooling model.
-% Secondly, in order to better represent for the spatial heterogeneity of urban landscapes, the land cover raster map is coupled with the tree canopy map to refine the land cover classes depending on their proportion of tree cover. For instance, pixels of a ``sidewalk'' class could be reclassified to further distinguish pixels of a ``sidewalk with high tree cover'' and ``sidewalk with low tree cover''. The reclassification will be accounted for in the biophysical table so that pixels with high tree cover have greater shading coefficients.
-% Finally, the preprocessed data will be fed into the urban cooling model to achieve a distribution of air temperature that mimics the patterns observed empirically.
-
-% An example application to the study of urban heat islands in the Swiss urban agglomeration of Lausanne will be presented in order to show how the computational workflow might be applied in realistic settings.
-% Additionally, the proposed approach aims at providing a reusable method with moderate data requirements that can be applied to very distinct urban areas, and might thus provide new insights into many of the contradicting results encountered in the literature.
+%
+% Uncomment for keywords
+%\vspace{2pc}
+%\noindent{\it Keywords}: XXXXXX, YYYYYYYY, ZZZZZZZZZ
+%
+% Uncomment for Submitted to journal title message
+%\submitto{\JPA}
+%
+% Uncomment if a separate title page is required
+%\maketitle
+% 
+% For two-column output uncomment the next line and choose [10pt] rather than [12pt] in the \documentclass declaration
+%\ioptwocol
+%
 
 
 
-% now start line numbers
-\linenumbers
-
-% the * after section prevents numbering
-\section*{Introduction}
-
-% Distinction: three types of UHI: urban boundary layer, urban canopy layer \cite{oke1976distinction}
-
-% ``We know that simply increasing the percent cover of greenspace leads to a reduction of temperatures; this relationship is very consistent. What is less known, however, is the effects of the spatial configuration of that greenspace on urban temperatures'' \cite[page 2]{zhou2017effects}
-% The complexity of such relationship might only be understood by means of a spatially-explicit analysis. Several studies have addressed the effects of landscape composition and pattern on land surface temperature (LST), e.g., derived from satellite imagery, by means of statistical approaches (e.g., ordinary regressions or spatial autoregressions). 
-% non-linear interplay between landscape patterns and ecological processes \cite{du2016quantifying}
-% Note that while most studies that use single-level statistical models suggest that landscape composition has greater influence on LST than landscape configuration, the multi-level models used by Du et al. \cite{du2016quantifying} suggest the opposite. Why? (i) group-based configuration metrics consider the autocorrelations of the configuration metrics, and (ii) the aggregation effects of the groups and the individual effects of the pixels are distinguished by the multi-level models.
-% Note however further limitations of statistical approaches in general:
-% ``Our results from the comparison of the two cities indicated that the spatial configuration of trees may have different effects on LST in cities with different climatic conditions'' \cite[page 6]{zhou2017effects}
-% This might be due to the fact that the relative contributions of the two main cooling mechanisms associated to urban trees, namely shading and evapotranspiration, can be related to the different climatic conditions of the modelled cities \cite{zhou2017effects}.
-% Nevertheless, the statistical approaches employed in such studies (e.g., ordinary regressions or spatial autoregressions with LST as response and landscape metrics as explanatory variables) do not explicitly reflect the physical mechanisms beyond the urban heat island phenomena.
-
-
-% Urban areas are heterogeneous in their distribution of built and natural components \cite{cadenasso2007spatial}, especially relevant to urban climate studies \cite{stewart2012local}.
-
-% Distinction from the landscape ecology perspective: composition metrics (percent cover of green space) and configuration metrics (distribution of patches).
-
-% Another advantage: cities with very similar climatic conditions, and very homogeneous data
-
-% Also issue of how the extents are defined
-
-% efficiency in cooling: decrease in degrees of LST with every 1% increase in tree cover (page 6 of \cite{zhou2017effects})
-
-% NDVI vs tree cover: NDVI includes both trees and grass/lawns. Note that grass is less effective than tree canopy for LST cooling
-
-% greening \cite{jabareen2006sustainable}
-
-
-\section*{Materials and Methods}
-
-\subsection*{Study area and land use/land cover data}
+\section{Introduction}
 
 
 
-\subsection*{Simulation with the InVEST urban cooling model}
+\section{Materials and Methods}
+
+\subsection{Study area and land use/land cover data}
+
+
+
+\subsection{Simulation with the InVEST urban cooling model}
 
 The second approach to simulate the spatial distribution of UHI employs the InVEST urban cooling model (version 3.8.0) \cite{sharp2020invest}, which is based on the heat mitigation provided by shade, evapotranspiration and albedo.
 The main inputs are a LULC raster map, a reference evapotranspiration raster and a biophysical table containing model information of each LULC class of the map. Each row of the biophysical table represents a LULC class, and features the following columns:
@@ -203,7 +112,7 @@ In order to simulate the spatial distribution of $T_{air}$, the model requires t
 
 
 
-\subsubsection*{Model description}
+\subsubsection{Model description}
 
 The data inputs described above are then used to compute the cooling capacity index, which is based on the physical mechanisms that contribute to cooling urban temperatures. More precisely, the cooling capacity index used in InVEST urban cooling model builds upon the indices proposed by Zardo et al. \cite{zardo2017estimating}, which are based on shading and evapotranspiration, and extends them by adding a factor to account for the albedo.
 For each pixel $i$ of the LULC raster map, the cooling capacity index is computed as in:
@@ -214,7 +123,7 @@ For each pixel $i$ of the LULC raster map, the cooling capacity index is compute
 \end{equation}
 
 where $S_i$, $AL_i$ and $ETI_i$ respectively represent the tree shading, albedo and evapotranspiration values of pixel $i$ as defined in the biophysical table, and $w_{S}$, $w_{AL}$ and $w_{ET}$ represent the weights attributed to each component respectively.
-The values of $S_i$ and $AL_i$ are retrieved from the biophysical table according to the LULC class of the pixel $i$ (see Appendix~\ref{table-biophysical}).
+The values of $S_i$ and $AL_i$ are retrieved from the biophysical table according to the LULC class of the pixel $i$ (see \autoref{tab:biophysical-table}).
 The tree shading coefficient corresponds to the average proportion of tree cover in all the 10~m pixels of each LULC class, which has been computed by coupling the 1~m binary tree canopy mask with the rasterized 10~m LULC map.
 The albedo coefficients are based on the local climate zone classification by Steward and Oke \cite{stewart2012local}.
 
@@ -232,7 +141,7 @@ where $K_c$ is the evapotranspiration coefficient, $ET_{ref}$ is the reference e
 % \paragraph{Adjustment of the crop coefficient}
 
 In line with the studies of Nistor et al. \cite{nistor2015compute,nistor2016climate,nistor2016mapping}, the evapotranspiration coefficients are attributed to each LULC class by distinguishing four cases, namely the crop coefficient for single crops for vegetation LULC classes, the water evaporation coefficient for surface water, the rock and soil evaporation coefficient for bare soils and rocks, and evaporation coefficients for artificial LULC classes (e.g., urban areas).
-The evapotranspiration coefficients attributed to the LULC classes of the Swiss cadastral survey are listed in Appendix~\ref{table-biophysical}.
+The evapotranspiration coefficients attributed to the LULC classes of the Swiss cadastral survey are listed in \autoref{tab:biophysical-table}.
 
 % \paragraph{Computation of the evapotranspiration}
 
@@ -257,12 +166,14 @@ where $g_i$ is 1 when the pixel $i$ is a green area and 0 otherwise (as defined 
 
 Then, a heat mitigation index is computed as:
 
+% $\; if \;\; i \; \textrm{is part of a large green area} \;\; or \;\; CC_i > CC_i^{green}$
+% $\; otherwise$
 \begin{equation}
   \label{eq:heat-mitigation index}
-  HM_i = \begin{cases}
-    CC_i & \; if \;\; i \; \textrm{is part of a large green area} \;\; or \;\; CC_i > CC_i^{green} \\[.5em]
-    CC_i^{green} & \; otherwise \\
-    \end{cases}
+  HM_i=\cases{
+    CC_i & if \; i $\in$ \textrm{large green area} \;\; or \;\; $CC_i > CC_i^{green}$ \\
+    CC_i^{green} & otherwise \\
+  }
 \end{equation}
 
 which is employed to compute the $T_i$ for each pixel $i$ of the study area as in:
@@ -276,12 +187,12 @@ where $T_{ref}$ and $UHI_{max}$ are the rural reference temperature and the magn
 Finally, the $T_{air}$ values of each pixel $T_i^{no \, mix}$ are spatially averaged using a Gaussian function with a kernel radius $r$ defined by the user.
 
 
-\subsubsection*{Calibration and evaluation of the model}
+\subsubsection{Calibration and evaluation of the model}
 
 
 
 
-\subsubsection*{Refining LULC classes based on tree cover and building density}
+\subsubsection{Refining LULC classes based on tree cover and building density}
 \label{sec:refin-lulc-class}
 
 To better account for the spatial heterogeneity of cities, a procedure to redefine the LULC classes from the cadastral survey has been designed, which further distinguishes the LULC classes depending on their proportional cover of both trees and buildings. Such reclassification is based on combining the 10~m raster LULC map with two 1~m binary raster masks, one for the tree canopy raster and another for the buildings. % , and consists of three main steps.
@@ -304,13 +215,15 @@ Secondly, the set of 10~m pixels of each LULC class are grouped into a user-defi
 Finally, the two histograms are joined so that each LULC class is further refined into a set of subclasses. For example, if two bins were used for both the tree and building cover, the ``sidewalk'' LULC code might be further refined into ``sidewalk with low tree/low building cover'', ``sidewalk with low tree/high building cover'', ``sidewalk with high tree/low building cover'' and ``sidewalk with high tree/high building cover''.
 In the present work, four equally spaced bins have been used to reclassify both the tree and building cover in order to obtain a more fine-grained LULC representation.
 
-\subsection*{Relationship between the spatial pattern of tree canopy on urban heat mitigation}
+\subsection{Relationship between the spatial pattern of tree canopy on urban heat mitigation}
 
-In order to explore the relationships between the \cite{rey2010pysal}
+In order to explore the relationships between the
+
+The OLS, diagnostics for spatial dependece and spatial regression are performed with the PySAL library (v2.3.0) \cite{rey2010pysal}, whereas the Pearson and partial correlation analysis are performed respectively with the SciPy (v1.5.2) \cite{virtanen2020scipy} and Pingouin (v0.3.7) \cite{vallat2018pingouin} libraries.
 
 
 
-\subsection*{Generation of greening scenarios}
+\subsection{Generation of greening scenarios}
 
 % One of the main advantages of using models based on biophysical mechanisms is that they allow for reasonable
 Departing from the refined LULC map, a set of synthetic scenarios will be simulated by altering the LULC classes of certain pixels in a way that corresponds to reasonable transformations that could occcur in urban areas.
@@ -328,9 +241,10 @@ Based on related studies, four spatial metrics have been chosen to quantify both
 \begin{table}[!h]
   % \begin{adjustwidth}{-.4\textwidth}{0cm} % Comment out/remove adjustwidth environment if table fits in text column.
   \footnotesize % Font size can be changed to match table content. Recommend 10 pt.
+  \caption{\label{tab:selected-metrics}Selected landscape metrics. A more thorough description can be found in the documentation of the software FRAGSTATS v4 \cite{mcgarigal2012fragstats}}
   \renewcommand{\arraystretch}{1.5} % vertical spacing
-  \centering
-  \begin{tabular}{p{.16\textwidth} p{.28\textwidth} p{.46\textwidth}} 
+  \begin{center}
+  \begin{tabular}{p{.13\textwidth} p{.34\textwidth} p{.53\textwidth}} 
     \toprule
     \textbf{Category} & \textbf{Metric name} & \textbf{Description} \\
     \midrule
@@ -340,128 +254,122 @@ Based on related studies, four spatial metrics have been chosen to quantify both
     & Edge density (ED) & Sum of the lengths of all edge segments between pixels with high tree canopy cover an other pixels, per area unit (in m/hectare) \\    
     \bottomrule  
   \end{tabular}
-  \caption{\label{tab:selected-metrics}Selected landscape metrics. A more thorough description can be found in the documentation of the software FRAGSTATS v4 \cite{mcgarigal2012fragstats}}
+  \end{center}
   % \end{adjustwidth}
 \end{table}
 
 
-\section*{Results}
+\section{Results}
 
-% \subsection*{Refinement of the LULC classification}
-
-% After applying the reclassification procedure (see \nameref{code-reclassification}), 64.2~\% of the pixels of the spatial extent have a tree canopy cover between 0 and 25~\%, while a 10.5~\%, 8~\% and 17.3~\% have a tree canopy cover between 25 and 50~\%, between 50 and 75~\% and  between 75 and 100~\% respectively. Regarding the proportion of buildings in the pixel, the percentage of pixels that fall into each bin are respectively a 88.2~\%, 4.2~\%, 3~\% and 4.6~\%.
-
-% More than 75~\% of pixels of urban LULC classes have less than a 25~\% of tree canopy cover. As expected, the urban LULC class that shows a greater proportion of tree canopy cover is ``garden'', where 51.7~\%, 20.2~\%, 15.2~\% and 12.9~\% of its pixels have a tree canopy cover between 0 and 25~\%, 25 and 50~\%, between 50 and 75~\% and  between 75 and 100~\% respectively, while a 12.9~\% of its pixels have a tree canopy cover of more than 75~\%. On the other hand, the LULC classes with less tree canopy cover are ``building'', ``traffic island'' and ``rail'', where a 92.8~\%, 87.3~\% and 84.8~\% of its pixels have a tree canopy cover between 0 and 25~\%. Finally, the ``road/path'', ``sidewalk'' and ``other impervious'' LULC classes have a 80~\%, 76.8~\% and 80.2~\% of its pixels with a tree canopy cover between 0 and 25~\%, and a 3.7~\%, 2.6~\% and 3.2~\% of its respective pixels have a tree canopy cover of more than 75~\%.
-
-% Regarding the proportion of building cover, the only LULC class that shows an important variety is ``building'', where a 21.3~\%, 17.5~\%, 16.7~\% and 44.4~\% of its pixels display a building cover between 0 and 25~\%, 25 and 50~\%, between 50 and 75~\% and  between 75 and 100~\% respectively.
-% % Among the other LULC classes, with 85.1~\%, 85~\% and 87.5~\%``sidewalk'', ``other impervious'' and ``garden''
-% The other LULC classes all have at least 85~\% of its pixels with a building cover under 25~\%.
-% % TODO: joint distribution?
+\subsection{Performance of the urban cooling model}
 
 
-\subsection*{Relationship between the spatial pattern of tree canopy on urban heat mitigation}
 
-\begin{table}[H]
+\subsection{Relationship between the spatial pattern of tree canopy on urban heat mitigation}
+
+The coefficients estimated with the OLS regression are listed in \autoref{tab:selected-metrics}. Although the values of the Moran I \cite{moran1950notes} suggest a strong spatial autocorrelation, the use of a spatial regression model does not improve the coefficient of determination nor change the sign of any coefficient at any scale (see \ref{sec:spatial-relationships}). Therefore, the remainder of the article will only consider the OLS regression.
+In line with the results of Zhou et al. \cite{zhou2017effects}, the coeffient of determination increases with the scale, whereas the Moran I and the Akaike information criterion (AIC) \cite{akaike1973information} decrease, suggesting that the linear regression model performs better at larger scales.
+
+\begin{table}
+  \caption{\label{tab:ols-regression} Results of the OLS regression.}
+  \scriptsize % Font size can be changed to match table content. Recommend 10 pt.
   \begin{center}
-    \begin{tabular}{ p{.1\textwidth} p{.14\textwidth} p{.14\textwidth} p{.14\textwidth} p{.14\textwidth} p{.14\textwidth} }
+    \begin{tabular}{ p{.065\textwidth} p{.11\textwidth} p{.11\textwidth} p{.11\textwidth} p{.11\textwidth} p{.11\textwidth} p{.055\textwidth} p{.07\textwidth} p{.07\textwidth} }
+      \toprule
+      Scale & PLAND & AREA\_MN & SHAPE\_MN & ED & DIST & R$^2$ & Moran & AIC\\
+      \midrule
+      120~m & -0.013741** & 0.375819** & -0.169583** & 0.000688** & -0.000119** & 0.414 & 0.872** & 9472.641 \\
+      & \textbf{-0.353207} & \textbf{0.130888} & \textbf{-0.055450} & \textbf{0.102536} & \textbf{-0.347371} \\
+      360~m & -0.016759** & 0.111463** & -0.365982** & 0.001481** & -0.000113** & 0.459 & 0.796** & 1335.884 \\
+      & \textbf{-0.340134} & \textbf{0.166164} & \textbf{-0.145221} & \textbf{0.175597} & \textbf{-0.337706} \\      
+      600~m & -0.023965** & 0.265071** & -0.635437** & 0.002251** & -0.000105** & 0.491 & 0.678** & 501.365 \\
+      & \textbf{-0.436498} & \textbf{0.248360} & \textbf{-0.202908} & \textbf{0.240449} & \textbf{-0.313095} \\
+      840~m & -0.029608** & 0.295937* & -0.529756** & 0.003047** & -0.000098** & 0.533 & 0.572** & 255.563 \\
+      & \textbf{-0.489575} & \textbf{0.180218} & \textbf{-0.161129} & \textbf{0.291127} & \textbf{-0.296891} \\
+      1080~m & -0.023499** & 0.233338 & -1.413028** & 0.002752** & -0.000106** & 0.564 & 0.486** & 154.011 \\
+      & \textbf{-0.360574} & \textbf{0.139134} & \textbf{-0.190122} & \textbf{0.233989} & \textbf{-0.311524} \\      
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  ** $P < 0.01$, * $P < 0.05$ (2-tailed)
+\end{table}
+
+The standardized coefficients suggest that proportion of tree canopy cover is the feature that has most heat mitigation effect at all scales, followed by the distance to the city center. Among the configuration metrics, the edge density has the most significant effect on air temperature, which suggest that a more edgy tree canopy pattern contributes to higher temperatures. A similar positive effect is observed for the mean patch size, nonetheless it becomes less significant at larger scales. Finally, the mean shape index has a negative effect on air temperature which indicates that more irregular tree canopy patches contribute to greater heat mitigation.
+
+% \begin{table}
+%   \footnotesize % Font size can be changed to match table content. Recommend 10 pt.
+%   \begin{center}
+%     \begin{tabular}{ p{.07\textwidth} p{.11\textwidth} p{.11\textwidth} p{.11\textwidth} p{.11\textwidth} p{.11\textwidth} p{.07\textwidth} p{.08\textwidth} }
+%       \toprule
+%       Scale & PLAND & AREA\_MN & SHAPE\_MN & ED & DIST & R$^2$ & AIC\\
+%       \midrule
+%       120~m & -0.027518 & 1.075121 & -0.340077 & 0.001006 & -0.000118 & 0.381 & inf \\
+%       360~m & -0.020581 & 0.088502 & -0.206741 & 0.001568 & -0.000112 & 0.449 & 1664.495 \\
+%       600~m & -0.003655 & 0.033896 & -0.150886 & 0.000321 & -0.000131 & 0.357 & -248.053 \\
+%       840~m & -0.007555 & 0.073376 & -0.163887 & 0.000450 & -0.000123 & 0.411 & -39.204 \\
+%       1080~m & -0.014000 & 0.146802 & -0.678353 & 0.000938 & -0.000103 & 0.535 & 114.427 \\
+%       \bottomrule
+%     \end{tabular}
+%     \caption{\label{tab:spatial-regression} Results of the spatial regression.}
+%   \end{center}
+% \end{table}
+
+The correlation coefficients for the Pearson correlation and the partial correlation analysis are listed in \autoref{tab:correlation-coefficients}. The distance to the city center is the feature that is most negatively correlated to air temperature, and its effect increases when controlling for the proportion of tree cover. Each of the configuration metrics shows a distinctive response to the partial correlation analysis. The mean patch size becomes shows a clear decrease on its negative influence on air temperature when controlling for the proportion of tree cover, even losing the $P < 0.05$ significance level at the largest scale. In sharp contrast, the mean shape index increases its negative effect on air temperature, whereas the edge density changes from a positive correlation with air temperature to a negative effect with a similar level of significance. Contrarily to the OLS regression above, the results of the partial correlation suggest that increasing the edges between tree and non-tree pixels contributes to urban heat mitigation. On the other hand, when controlling for the effects of the configuration metrics, the proportion of tree cover shows an increase on its negative effect on air temperature. Finally, with very few exceptions, the correlation coefficients increase with the scale. 
+
+\begin{table}
+  \caption{\label{tab:correlation-coefficients} Correlation coefficients. The bold rows show the coefficients of the partial correlation analysis.}
+  \footnotesize % Font size can be changed to match table content. Recommend 10 pt.
+  \begin{center}
+    \begin{tabular}{ p{.075\textwidth} p{.13\textwidth} p{.13\textwidth} p{.13\textwidth} p{.13\textwidth} p{.13\textwidth}}
       \toprule
       Scale & PLAND & AREA\_MN & SHAPE\_MN & ED & DIST \\
       \midrule
-      600~m & -0.0036551** & 0.0338958 & -0.1508861** & 0.0003209* & -0.0001311** \\
-       & -0.4126989** & -0.113218* & -0.160736** & 0.3619957** & -0.5551176** \\      
-      \bottomrule
-    \end{tabular}
-    \caption{\label{tab:spatial-regression} Correlation coefficients between the air temperature and the features of the spatial regression. }
-
-  \end{center}
-\end{table}
-
-% ALSO:
-% - metrics to show that spatial regression is needed (spatial autocorrelation)
-% - heteroscedasticity
-
-
-\subsection*{Evaluation of greening scenarios}
-
-The relationship between the proportion of landscape occupied by pixels with high tree canopy cover, and the three other landscape metrics, namely the mean patch-size, edge density and mean shape index of high tree canopy patches in the two scenarios is displayed in \autoref{fig:scenario-metrics} (see \nameref{code-scenarios}).
-
-\begin{figure}[ht]
-  \begin{adjustwidth}{-.4\textwidth}{0cm}
-    \centering
-    % \includegraphics[width=1.4\textwidth]{figures/scenario-metrics.pdf}
-    % \caption{\label{fig:scenario-metrics} Relationship between the percentage of pixels changed (out of the pixels where the tree canopy cover could be increased) and the resulting overall percentage of pixels with high tree canopy cover (left), mean patch size (MPS, in hectares) of pixels high tree canopy cover (center) and edge density (ED, in m / hectare) of pixels high tree canopy cover (right). The markers correspond to the scenarios that have actually been simulated, i.e., a ``cluster'' and a ``scatter'' scenario for each percentage of pixels changed, which starts at 0~\% and successively increases 10~\% until reaching a 100~\% of pixels changed (out of the pixels where the tree canopy cover could be increased).}
-    \caption{\label{fig:scenario-metrics} Relationship between the percentage of landscape with high tree canopy cover (PLAND) and the mean patch size (MPS, in hectares, in the left sub-plot), the edge density (ED, in m / hectare, in the center sub-plot) and the mean shape index (MSI, adimensional, in the right sub-plot). The markers correspond to the scenarios that have actually been simulated, i.e., a ``cluster'' and a ``scatter'' scenario for each percentage of pixels changed, which starts at 0~\% and successively increases 10~\% until reaching a 100~\% of pixels changed (out of the pixels where the tree canopy cover could be increased). For each percentage of pixels changed, See \nameref{code-scenarios}.}
-  \end{adjustwidth}
-\end{figure}
-
-
-
-\begin{figure}[ht]
-  \begin{adjustwidth}{-.4\textwidth}{0cm}
-    \centering
-    % \includegraphics[width=1.4\textwidth]{figures/scenario-maps.pdf}
-    \caption{\label{fig:scenario-maps} Comparison between the ``cluster'' and ``scatter'' scenarios for a proportion of changed pixels of 20~\%, i.e., a percentage of landscape with high tree canopy cover (PLAND) of . The blue points represent pixels that have high tree canopy cover in the ``cluster'' scenario but not in the ``scatter'', while orange points represent the converse. See \nameref{code-scenarios}.}
-  \end{adjustwidth}
-\end{figure}
-  
-% In the reference LULC raster map, the pixels with high tree canopy cover account for a 27~\% of the spatial extent of the study. After increasing the tree canopy cover in all the pixels where that is possible, such proportion raises to an overall 32.5~\%.
-In the reference LULC raster map, the pixels with high tree canopy cover account for a 17.3~\% of the spatial extent of the study. After increasing the tree canopy cover in all the pixels where that is possible, such proportion raises to an overall 29.9~\%.
-% Regarding the resulting percentage of pixels with high tree cover, there are no significant differences when 
-
-
-\section*{Discussion}
-
-
-
-\section*{Conclusion}
-
-
-\section*{Supporting Information}
-
-\subsection*{Table S1}
-\label{table-station-locations}
-
-% Location of the air temperature measurement stations, as comma-separated values (CSV).
-% \url{https://github.com/martibosch/lausanne-heat-islands/blob/master/data/raw/tair-stations/station-locations.csv}
-Air temperature measurement stations with their operator and their elevation in meters above sea level. The operators are: Agrometeo, Federal roads office (ASTRA), Federal office for the environment (BAFU), General directorate for the environment of the Canton of Vaud (DGE), and the Federal Institute of Forest, Snow and Landscape Research (WSL) \cite{rebetez2018meteorological}. The source comma-separated value (CSV) file used in the computational workflow is available at \url{https://github.com/martibosch/lausanne-heat-islands/blob/master/data/raw/tair-stations/station-locations.csv}.
-
-\begin{table}[H]
-  \begin{center}
-    \begin{tabular}{ p{.3\textwidth} p{.15\textwidth} c }
-      \toprule
-      Station & Operator & Elevation [m.a.s.l] \\
-      \midrule
-      Bourg-en-Lavaux & Agrometeo & 519 \\
-      Marcelin & Agrometeo & 436 \\
-      Chandel M/13 & ASTRA & 680 \\  
-      Morges & ASTRA & 380 \\
-      Sorges & ASTRA & 500 \\
-      Lausanne C\'esar-Roux & BAFU & 426 \\
-      Bussigny & DGE & 429 \\
-      Lausanne Plaines-du-Loup & DGE & 598 \\
-      Morges & DGE & 376 \\
-      Pully & MeteoSwiss & 426 \\
-      Lausanne Freiland & WSL & 795 \\
+      120~m & -0.335816** & -0.326044** & -0.203751** & -0.021708 & -0.542007** \\
+      & \textbf{-0.201833}** & \textbf{-0.053347}** & \textbf{-0.140807}** & \textbf{-0.024849}* & \textbf{-0.575068}** \\
+      360~m & -0.304223** & -0.230111** & -0.293065** & 0.090014* & -0.545207** \\
+      & \textbf{-0.353835}** & \textbf{-0.038458} & \textbf{-0.299635}** & \textbf{-0.145022}** & \textbf{-0.595347}** \\      
+      600~m & -0.340180** & -0.334422** & -0.343264** & 0.111613* & -0.535269**  \\
+      & \textbf{-0.398365}** & \textbf{-0.129310}* & \textbf{-0.374636}** & \textbf{-0.177379}** & \textbf{-0.593629}** \\
+      840~m & -0.368275** & -0.392994* & -0.343015** & 0.114636 & -0.544322** \\
+      & \textbf{-0.428976}** & \textbf{-0.180682}* & \textbf{-0.457676}** & \textbf{-0.173731}* & \textbf{-0.606605}** \\
+      1080~m & -0.342848** & -0.346385 & -0.354632** & 0.236678** & -0.569577**  \\
+      & \textbf{-0.428303}** & \textbf{-0.177690} & \textbf{-0.484208}** & \textbf{-0.215491}* & \textbf{-0.650891}** \\      
       \bottomrule
     \end{tabular}
   \end{center}
-  % \caption{\label{tab:stations} Air temperature measurement stations with their operator and their elevation in meters above sea level. The operators are: Agrometeo, Federal roads office (ASTRA), Federal office for the environment (BAFU), General directorate for the environment of the Canton of Vaud (DGE), and the Federal Institute of Forest, Snow and Landscape Research (WSL) \cite{rebetez2018meteorological}. The source comma-separated value (CSV) file used in the computational workflow is available at \url{https://github.com/martibosch/lausanne-heat-islands/blob/master/data/raw/tair-stations/station-locations.csv}.}
-  % \textbf{Table S2.} Air temperature measurement stations with their operator and their elevation in meters above sea level. The operators are: Agrometeo, Federal roads office (ASTRA), Federal office for the environment (BAFU), General directorate for the environment of the Canton of Vaud (DGE), and the Federal Institute of Forest, Snow and Landscape Research (WSL) \cite{rebetez2018meteorological}. The source comma-separated value (CSV) file used in the computational workflow is available at \url{https://github.com/martibosch/lausanne-heat-islands/blob/master/data/raw/tair-stations/station-locations.csv}.
+  ** $P < 0.01$, * $P < 0.05$ (2-tailed)
 \end{table}
 
 
-\subsection*{Table S2}
-\label{table-biophysical}
+
+\subsection{Urban heat mitigation in the synthetic scenarios}
+
+% TODO: plot the PLAND-configuration metric relationships for the ``cluster'' and ``scatter'' scenarios.
+
+% TODO: plot the differences between the simulated air temperature (maps and histograms) in the PLAND showing maximum difference in the configuration metrics of the ``cluster'' and ``scatter'' scenarios.
+
+% TODO: add a human exposure layer to the scenario evaluation
+
+
+\section{Discussion}
+
+\section{Conclusion}
+
+
+\appendix
+
+\section{Biophysical table}
+\label{sec:biophysical-table}
 
 % Biophysical table (before the reclassification), as comma-separated values (CSV).
 % \url{https://github.com/martibosch/lausanne-heat-islands/blob/master/data/raw/biophysical-table.csv}
-Biophysical table (before the reclassification). The crop and water coefficients are based on Allen et al. \cite{allen1998crop}, while rock, soil and urban coefficients are derived from the results of Grimmond and Oke \cite{grimmond1999evapotranspiration} in the city of Chicago. Given that the evapotranspiration of the vegetation and crops is subject to seasonal changes in temperate zones such as Switzerland \cite{allen1998crop}, the values that correspond to the mid-season estimation (June to August) in \cite{nistor2016mapping}.
+
+\begin{table}
+  % \begin{adjustwidth}{-.02\textwidth}{0cm}
+    \caption{\label{tab:biophysical-table} Biophysical table (before the reclassification). The crop and water coefficients are based on Allen et al. \cite{allen1998crop}, while rock, soil and urban coefficients are derived from the results of Grimmond and Oke \cite{grimmond1999evapotranspiration} in the city of Chicago. Given that the evapotranspiration of the vegetation and crops is subject to seasonal changes in temperate zones such as Switzerland \cite{allen1998crop}, the values that correspond to the mid-season estimation (June to August) in \cite{nistor2016mapping}.
 The albedo values are based on the work of Steward et al. \cite{stewart2012local}.
 The shade column, which represents the proportion of tree cover of each LULC class, is computed after the reclassification procedure described in \autoref{sec:refin-lulc-class}.
-The source comma-separated value (CSV) file used in the computational workflow is available at \url{https://github.com/martibosch/lausanne-heat-islands/blob/master/data/raw/biophysical-table.csv}.
-
-\begin{table}[H]
-  \begin{adjustwidth}{-.02\textwidth}{0cm}  
+The source comma-separated value (CSV) file used in the computational workflow is available at \url{https://github.com/martibosch/lausanne-heat-islands/blob/master/data/raw/biophysical-table.csv}.}
     \begin{center}
       \begin{tabular}{ c p{.28\textwidth} p{.16\textwidth} c c c }
         \toprule
@@ -505,29 +413,16 @@ The source comma-separated value (CSV) file used in the computational workflow i
     % \textbf{Table S3.} Biophysical table. The crop and water coefficients are based on Allen et al. \cite{allen1998crop}, while rock, soil and urban coefficients are derived from the results of Grimmond and Oke \cite{grimmond1999evapotranspiration} in the city of Chicago. Given that the evapotranspiration of the vegetation and crops is subject to seasonal changes in temperate zones such as Switzerland \cite{allen1998crop}, the values that correspond to the mid-season estimation (June to August) in \cite{nistor2016mapping}.
     % The albedo values are based on the work of Steward et al. \cite{stewart2012local}.
     % The source comma-separated value (CSV) file used in the computational workflow is available at \url{https://github.com/martibosch/lausanne-heat-islands/blob/master/data/raw/biophysical-table.csv}.
-  \end{adjustwidth}
+  % \end{adjustwidth}
 \end{table}
 
 
-\subsection*{Code S4}
-\label{code-reclassification}
-Reclassification details, as Jupyter Notebook (IPYNB).
-\url{https://github.com/martibosch/lausanne-heat-islands/blob/master/notebooks/reclassification.ipynb}
+\section{Relationships between the spatial patterns of tree canopy and air temperature}
+\label{sec:spatial-relationships}
 
-\subsection*{Code S5}
-\label{code-scenarios}
-Scenario generation details, as Jupyter Notebook (IPYNB).
-\url{https://github.com/martibosch/lausanne-heat-islands/blob/master/notebooks/scenarios.ipynb}
+Exploration of relationships between the spatial patterns of tree canopy and air temperature, as Jupyter Notebook (IPYNB) \url{https://github.com/martibosch/lausanne-greening-scenarios/blob/master/notebooks/spatial-relationships.ipynb}.
 
-\section*{Acknowledgments}
-This research has been supported by the \'Ecole Polytechnique F\'ed\'erale de Lausanne (EPFL).
-
-\nolinenumbers
-
-% This is where your bibliography is generated. Make sure that your .bib file is actually called library.bib
 \bibliography{references}
-
-%This defines the bibliographies style. Search online for a list of available styles.
 \bibliographystyle{unsrt}
 
 \end{document}
