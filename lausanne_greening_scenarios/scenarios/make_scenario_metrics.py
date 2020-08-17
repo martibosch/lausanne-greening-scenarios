@@ -8,7 +8,7 @@ import pylandstats as pls
 import xarray as xr
 from tqdm import tqdm
 
-from lausanne_heat_islands import settings
+from lausanne_greening_scenarios import settings
 
 # register tqdm with pandas to be able to use `progress_apply`
 tqdm.pandas()

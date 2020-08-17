@@ -8,16 +8,20 @@ import xarray as xr
 from rasterio import transform
 from scipy import ndimage as ndi
 
-from lausanne_heat_islands import settings
+from lausanne_greening_scenarios import settings
 
-LULC_CODES = [0, 1, 2, 3, 7]
+ORIG_LULC_CODES = [0, 1, 2, 3, 7]
 ROAD_CODE = 1
 
 KERNEL_MOORE = ndi.generate_binary_structure(2, 2)
 
 
 class ScenarioGenerator:
-    def __init__(self, agglom_lulc_filepath, biophysical_table_filepath):
+    def __init__(self,
+                 agglom_lulc_filepath,
+                 biophysical_table_filepath,
+                 orig_lulc_col='orig_lucode',
+                 lulc_col='lucode'):
         # read the LULC raster
         with rio.open(agglom_lulc_filepath) as src:
             lulc_arr = src.read(1)
@@ -31,16 +35,16 @@ class ScenarioGenerator:
         # highway)
         self.inner_road_mask = ndi.binary_erosion(
             np.isin(
-                lulc_arr, biophysical_df[biophysical_df['lulc_code'] ==
+                lulc_arr, biophysical_df[biophysical_df[orig_lulc_col] ==
                                          ROAD_CODE]['lucode']), KERNEL_MOORE)
 
         # increase the tree cover by changing the land cover code of
         # roads/paths, sidewalks, blocks and other impervious surfaces to the
         # equivalent code with greater tree cover
         next_code_dict = {}
-        for lulc_code in LULC_CODES:
-            shade_gb = biophysical_df[biophysical_df['lulc_code'] ==
-                                      lulc_code].groupby('shade')
+        for orig_lulc_code in ORIG_LULC_CODES:
+            shade_gb = biophysical_df[biophysical_df[orig_lulc_col] ==
+                                      orig_lulc_code].groupby('shade')
             if len(shade_gb) == 1:
                 pass
             else:
@@ -90,9 +94,8 @@ class ScenarioGenerator:
 
         # get list of pixels that can be changed and their next code
         for lucode in self.next_code_dict:
-            change_df.loc[np.flatnonzero(
-                self.lulc_arr ==
-                lucode), 'next_code'] = self.next_code_dict[lucode]
+            change_df.loc[np.flatnonzero(self.lulc_arr == lucode),
+                          'next_code'] = self.next_code_dict[lucode]
 
         change_df['conv_result'] = conv_result.flatten()[self.change_df_idx]
         change_df = change_df.dropna()
@@ -115,8 +118,8 @@ class ScenarioGenerator:
 
             sorted_df = change_df.sort_values('conv_result',
                                               ascending=ascending)
-            last_lucode = sorted_df.iloc[:
-                                         num_to_change]['conv_result'].iloc[-1]
+            last_lucode = sorted_df.iloc[:num_to_change]['conv_result'].iloc[
+                -1]
             conv_result_ser = sorted_df['conv_result']
             if ascending:
                 pixels_to_change_df = sorted_df[conv_result_ser < last_lucode]

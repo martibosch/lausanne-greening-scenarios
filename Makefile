@@ -1,4 +1,5 @@
-.PHONY: reclassify swiss_dem station_measurements lst ref_et tair_ucm
+.PHONY: reclassify scenarios scenario_metrics swiss_dem station_measurements \
+	lst ref_et tair_ucm 
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -87,7 +88,6 @@ $(CADASTRE_DIR)/%.shp: $(CADASTRE_DIR)/%.zip $(MAKE_CADASTRE_SHP_FROM_ZIP_PY)
 
 ## 2. Reclassify according to tree cover
 ### variables
-CODE_RECLASSIFY_DIR := $(CODE_DIR)/reclassify
 # BIOPHYSICAL_TABLE_FILE_KEY := other/biophysical-table.csv
 BIOPHYSICAL_TABLE_CSV := $(DATA_RAW_DIR)/biophysical-table.csv
 DATA_RECLASSIF_DIR := $(DATA_INTERIM_DIR)/reclassif
@@ -96,6 +96,7 @@ BLDG_COVER_TIF := $(DATA_RECLASSIF_DIR)/bldg-cover.tif
 RECLASSIF_TABLE_CSV := $(DATA_PROCESSED_DIR)/biophysical-table.csv
 RECLASSIF_LULC_TIF := $(DATA_PROCESSED_DIR)/agglom-lulc.tif
 #### code
+CODE_RECLASSIFY_DIR := $(CODE_DIR)/reclassify
 MAKE_PIXEL_TREE_COVER_PY := $(CODE_RECLASSIFY_DIR)/make_pixel_tree_cover.py
 MAKE_PIXEL_BLDG_COVER_PY := $(CODE_RECLASSIFY_DIR)/make_pixel_bldg_cover.py
 MAKE_RECLASSIFY_PY := $(CODE_RECLASSIFY_DIR)/make_reclassify.py
@@ -121,10 +122,36 @@ $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV): $(TREE_COVER_TIF) \
 $(RECLASSIF_TABLE_CSV): $(RECLASSIF_LULC_TIF)
 reclassify: $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV)
 
-## 2. Generate scenarios
+
+#################################################################################
+# Scenarios
+
+## 1. Generate scenarios
 ### variables
+SCENARIO_DA_NC := $(DATA_INTERIM_DIR)/scenario-da.nc
+#### code
+CODE_SCENARIOS_DIR := $(CODE_DIR)/scenarios
+MAKE_SCENARIO_DA_PY := $(CODE_SCENARIOS_DIR)/make_scenario_da.py
 
 ### rules
+$(SCENARIO_DA_NC): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
+	$(MAKE_SCENARIO_DA_PY)
+	python $(MAKE_SCENARIO_DA_PY) $(RECLASSIF_LULC_TIF) \
+		$(RECLASSIF_TABLE_CSV) $@
+scenarios: $(SCENARIO_DA_NC)
+
+## 2. Compute landscape metrics of each scenario
+### variables
+SCENARIO_METRICS_CSV := $(DATA_INTERIM_DIR)/scenario-metrics.csv
+#### code
+MAKE_SCENARIO_METRICS_PY := $(CODE_SCENARIOS_DIR)/make_scenario_metrics.py
+
+### rules
+$(SCENARIO_METRICS_CSV): $(SCENARIO_DA_NC) $(RECLASSIF_TABLE_CSV) \
+	$(MAKE_SCENARIO_METRICS_PY)
+	python $(MAKE_SCENARIO_METRICS_PY) $(SCENARIO_DA_NC) \
+		$(RECLASSIF_TABLE_CSV) $@
+scenario_metrics: $(SCENARIO_METRICS_CSV)
 
 
 #################################################################################
@@ -199,13 +226,12 @@ lst: $(LST_NC)
 #################################################################################
 # InVEST
 
-CODE_INVEST_DIR := $(CODE_DIR)/invest
-
 ## 0. Some code that we need for all the experiments
 ### variables
 DATA_INVEST_DIR := $(DATA_INTERIM_DIR)/invest
 REF_ET_NC := $(DATA_INVEST_DIR)/ref-et.nc
 #### code
+CODE_INVEST_DIR := $(CODE_DIR)/invest
 MAKE_REF_ET_PY := $(CODE_INVEST_DIR)/make_ref_et.py
 
 ### rules

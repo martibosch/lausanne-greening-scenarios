@@ -53,16 +53,16 @@ def reclassify_by_cover(class_cond, cover_arr, nodata, bins):
 @click.option('--dst-dtype', default='uint16')
 @click.option('--dst-nodata', default=0)
 def main(
-        agglom_lulc_filepath,
-        tree_cover_filepath,
-        bldg_cover_filepath,
-        biophysical_table_filepath,
-        dst_tif_filepath,
-        dst_csv_filepath,
-        num_tree_bins,
-        num_bldg_bins,
-        dst_dtype,
-        dst_nodata,
+    agglom_lulc_filepath,
+    tree_cover_filepath,
+    bldg_cover_filepath,
+    biophysical_table_filepath,
+    dst_tif_filepath,
+    dst_csv_filepath,
+    num_tree_bins,
+    num_bldg_bins,
+    dst_dtype,
+    dst_nodata,
 ):
     logger = logging.getLogger(__name__)
 
@@ -137,12 +137,15 @@ def main(
     bin_centers = dst_df[dst_df['lucode'] == 0]['building_cover'].unique()
     bin_min = bin_centers.min()
     bin_diff = bin_centers.max() - bin_min
-    dst_df['albedo'] = dst_df.apply(lambda row: row['albedo_max'] - (row[
-        'albedo_max'] - row['albedo_min']) * (row['building_cover'] - bin_min)
-                                    / bin_diff,
-                                    axis=1)
+    dst_df['albedo'] = dst_df.apply(
+        lambda row: row['albedo_max'] -
+        (row['albedo_max'] - row['albedo_min']) *
+        (row['building_cover'] - bin_min) / bin_diff,
+        axis=1)
 
     # 3. drop unnecessary columns and rename remaining columns to match InVEST
+    # save the original LULC code
+    dst_df['orig_lucode'] = dst_df['lucode']
     dst_df = dst_df.drop(['lucode', 'albedo_min', 'albedo_max'], axis=1)
     dst_df = dst_df.rename(columns=INVEST_RENAME_COLUMNS_DICT)
 
