@@ -13,6 +13,7 @@ dependencies:
     - pylandsat==0.2
     - salem==0.2.4
     - git+git://github.com/martibosch/swiss-uhi-utils.git@0166029edc611ef8544942dbc1ea3408fe1ded15
+    - swisslandstats-geopy==0.8.0
   - setuptools
   - wheel
   - click

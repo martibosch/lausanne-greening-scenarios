@@ -153,6 +153,24 @@ $(SCENARIO_METRICS_CSV): $(SCENARIO_DA_NC) $(RECLASSIF_TABLE_CSV) \
 		$(RECLASSIF_TABLE_CSV) $@
 scenario_metrics: $(SCENARIO_METRICS_CSV)
 
+## 3. 
+### variables
+STATPOP_URI = https://www.bfs.admin.ch/bfsstatic/dam/assets/9947069/master
+STATPOP_DIR := $(DATA_RAW_DIR)/statpop
+STATPOP_CSV := $(STATPOP_DIR)/statpop-2018.csv
+#### code
+
+### rules
+$(STATPOP_DIR): | $(DATA_RAW_DIR)
+	mkdir $@
+$(STATPOP_DIR)/%.zip: | $(STATPOP_DIR)
+	wget $(STATPOP_URI) -O $@
+$(STATPOP_DIR)/%.csv: $(STATPOP_DIR)/%.zip
+	unzip -j $< 'STATPOP2018.csv' -d $(STATPOP_DIR)
+	mv $(STATPOP_DIR)/STATPOP2018.csv $(STATPOP_CSV)
+	touch $@
+# statpop: $(STATPOP_CSV)
+
 
 #################################################################################
 # DEM
