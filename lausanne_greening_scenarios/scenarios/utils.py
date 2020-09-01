@@ -8,15 +8,18 @@ from affine import Affine
 
 class ScenarioWrapper:
     def __init__(self, scenario_lulc_da, biophysical_table_filepath,
-                 ref_et_raster_filepath, ucm_params):
+                 ref_et_raster_filepath, t_ref, uhi_max, ucm_params):
         self.scenario_lulc_da = scenario_lulc_da
         self.scenario_dims = scenario_lulc_da.coords.dims[:-2]
         rio_meta = scenario_lulc_da.attrs.copy()
         rio_meta['transform'] = Affine.from_gdal(*rio_meta['transform'])
         self.rio_meta = rio_meta
 
+        self.biophysical_table_filepath = biophysical_table_filepath
         self.ref_et_raster_filepath = ref_et_raster_filepath
 
+        self.t_ref = t_ref
+        self.uhi_max = uhi_max
         self.ucm_params = ucm_params
 
     # define the functions so that the fixed arguments are curried into them,
@@ -39,7 +42,7 @@ class ScenarioWrapper:
                                          self.biophysical_table_filepath,
                                          'factors',
                                          self.ref_et_raster_filepath,
-                                         t_ref,
-                                         uhi_max,
+                                         self.t_ref,
+                                         self.uhi_max,
                                          extra_ucm_args=self.model_params)
             return ucm_wrapper.predict_t_da()

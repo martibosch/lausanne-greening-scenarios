@@ -33,6 +33,14 @@ def get_da_rio_meta(da):
                 crs=da.attrs['pyproj_srs'])
 
 
+def get_hottest_day_t_ref_uhi_max(t_da):
+    hottest_day = t_da.isel(time=t_da.groupby('time').max(
+        dim=['x', 'y']).argmax())['time'].dt.strftime('%Y-%m-%d').item()
+    t_ref = t_da.sel(time=hottest_day).min(dim=['x', 'y']).item()
+    uhi_max = t_da.sel(time=hottest_day).max(dim=['x', 'y']).item() - t_ref
+    return hottest_day, t_ref, uhi_max
+
+
 def dump_ref_et_raster(ref_et_day_da, date, dst_dir, meta):
     ref_et_raster_filepath = _get_ref_eto_filepath(date, dst_dir)
     with rio.open(ref_et_raster_filepath, 'w', **meta) as dst:
