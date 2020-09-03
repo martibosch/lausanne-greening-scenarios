@@ -50,10 +50,8 @@ class RegressionWrapper:
             return self._regr_features_df.loc[scale]
         except KeyError:
             zga = self._get_zga(scale)
-            metrics_df = zga.compute_class_metrics_df(metrics=self.metrics,
-                                                      classes=[
-                                                          self.tree_class
-                                                      ]).apply(pd.to_numeric)
+            metrics_df = zga.compute_class_metrics_df(
+                metrics=self.metrics, classes=[self.tree_class])
             regr_features_df = metrics_df.iloc[
                 metrics_df.index.get_level_values(
                     'class_val') == self.tree_class].reset_index(drop=True)
@@ -133,8 +131,8 @@ class RegressionWrapper:
                                  self.feature_cols))] = np.vstack(
                                      list(m.betas.flatten()
                                           for m in ms))[:, features_slice]
-        regr_results_df[list(
-            map(lambda col: f'{col}_p', self.feature_cols))] = np.vstack(
+        regr_results_df[list(map(
+            lambda col: f'{col}_p', self.feature_cols))] = np.vstack(
                 list(
                     np.array(getattr(m, stat_attr))[features_slice, 1]
                     for m in ms))
@@ -154,9 +152,9 @@ class RegressionWrapper:
             # drop rows with nan
             regr_df = regr_df.dropna()
             for x_col in regr_df.drop('T', axis=1).columns:
-                scale_df.loc[scale, [f'{x_col}_r', f'{x_col}_p'
-                                     ]] = stats.pearsonr(
-                                         regr_df[x_col], regr_df['T'])
+                scale_df.loc[scale,
+                             [f'{x_col}_r', f'{x_col}_p']] = stats.pearsonr(
+                                 regr_df[x_col], regr_df['T'])
 
             return scale_df
 

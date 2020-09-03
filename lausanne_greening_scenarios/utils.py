@@ -206,7 +206,7 @@ def get_linear_regression_summary(metrics_df, class_val, zonal_t_arrs):
     df = metrics_df.iloc[metrics_df.index.get_level_values('class_val') ==
                          class_val].droplevel(0)
     df['t'] = np.mean(zonal_t_arrs, axis=(1, 2))
-    df = df.dropna().apply(pd.to_numeric)
+    df = df.dropna()
 
     X = sm.add_constant(df.drop('t', axis=1))
     y = df['t']
