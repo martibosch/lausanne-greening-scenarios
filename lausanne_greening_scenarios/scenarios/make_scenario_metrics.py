@@ -5,6 +5,7 @@ import click
 import numpy as np
 import pandas as pd
 import pylandstats as pls
+import salem  # noqa: F401
 import xarray as xr
 from tqdm import tqdm
 
@@ -21,22 +22,30 @@ METRICS = ['area_mn', 'edge_density', 'shape_index_mn']
 
 
 @click.command()
-@click.argument('scenario_lulc_filepath', type=click.Path(exists=True))
+@click.argument('scenario_config_filepath', type=click.Path(exists=True))
+@click.argument('scenario_endpoints_filepath', type=click.Path(exists=True))
 @click.argument('biophysical_table_filepath', type=click.Path(exists=True))
 @click.argument('dst_filepath', type=click.Path())
 @click.option('--shade-threshold', default=0.75)
-def main(scenario_lulc_filepath, biophysical_table_filepath, dst_filepath,
-         shade_threshold):
+def main(scenario_config_filepath, scenario_endpoints_filepath,
+         biophysical_table_filepath, dst_filepath, shade_threshold):
     logger = logging.getLogger(__name__)
 
-    scenario_lulc_da = xr.open_dataarray(scenario_lulc_filepath)
+    scenario_ds = xr.concat([
+        xr.open_dataset(scenario_ds_filepath) for scenario_ds_filepath in
+        [scenario_config_filepath, scenario_endpoints_filepath]
+    ],
+                            dim='change_prop')
+    scenario_lulc_da = scenario_ds['LULC']
 
-    scenario_dims = scenario_lulc_da.coords.dims[:3]
-    res = scenario_lulc_da.attrs['transform'][0]
+    # scenario_dims = scenario_lulc_da.coords.dims[:2]
+    scenario_dims = scenario_lulc_da.coords.dims[:-2]
+    res = scenario_ds.salem.grid.dx
     nodata = scenario_lulc_da.attrs['nodata']
-    change_props = scenario_lulc_da['change_prop'].values
+    interactions = scenario_lulc_da['interaction'].values
+    change_props = scenario_lulc_da['change_prop'].values.copy()
+    change_props.sort()
     scenario_runs = scenario_lulc_da['scenario_run'].values
-    num_scenario_runs = len(scenario_runs)
 
     biophysical_df = pd.read_csv(biophysical_table_filepath)
 
@@ -67,8 +76,8 @@ def main(scenario_lulc_filepath, biophysical_table_filepath, dst_filepath,
     def compute_endpoint_metrics(row, metrics):
         # interaction could be anything, since we are changing none or all the
         # changeable pixels
-        _row = dict(change_prop=row['change_prop'],
-                    interaction='cluster',
+        _row = dict(interaction='cluster',
+                    change_prop=row['change_prop'],
                     scenario_run=0)
         return compute_metrics(_row, metrics)
 
@@ -78,37 +87,39 @@ def main(scenario_lulc_filepath, biophysical_table_filepath, dst_filepath,
     scenario_df = pd.DataFrame(
         list(
             itertools.product(scenario_lulc_da['interaction'].values,
-                              change_props[1:-1], scenario_runs)),
+                              change_props[1:-1],
+                              scenario_ds['scenario_run'].values)),
         columns=['interaction', 'change_prop', 'scenario_run'])
-    for metric in METRICS:
-        scenario_df[metric] = np.nan
+    scenario_df[METRICS] = np.nan
+    # TODO: use dask here
     # now fill it by computing the landscape metrics
     scenario_df[METRICS] = scenario_df.progress_apply(compute_metrics,
                                                       axis=1,
                                                       args=(METRICS, ))
 
-    # compute the metrics (including PLAND) for the endpoints
-    endpoints = [change_props[0], change_props[-1]]
-    endpoint_scenario_df = pd.DataFrame(endpoints, columns=['change_prop'])
+    # now compute the metrics (including PLAND) for the endpoints
     endpoint_metrics = ['proportion_of_landscape'] + METRICS
-    for metric in endpoint_metrics:
-        endpoint_scenario_df[metric] = np.nan
+    endpoint_scenario_df = pd.DataFrame([0, 1], columns=['change_prop'])
     endpoint_scenario_df[
         endpoint_metrics] = endpoint_scenario_df.progress_apply(
             compute_endpoint_metrics, axis=1, args=(endpoint_metrics, ))
+    # repeat the endpoint metrics accross `interactions` and `scenario_runs`
+    # to have a consistent data frame structure with `scenario_df`
+    num_interactions = len(interactions)
+    num_scenario_runs = len(scenario_runs)
     endpoint_scenario_df = pd.concat(
-        [endpoint_scenario_df for i in range(2 * num_scenario_runs)],
-        ignore_index=True)
-    endpoint_scenario_df['interaction'] = [
-        'cluster'
-    ] * 2 * num_scenario_runs + ['scatter'] * 2 * num_scenario_runs
-    endpoint_scenario_df = endpoint_scenario_df.sort_values(
-        ['change_prop', 'interaction'])
-    endpoint_scenario_df['scenario_run'] = 4 * list(range(num_scenario_runs))
+        [endpoint_scenario_df] * num_interactions * num_scenario_runs,
+        ignore_index=True).sort_values('change_prop')
+    endpoint_scenario_df['interaction'] = np.tile(
+        interactions,
+        len(endpoint_scenario_df) // num_interactions)
+    endpoint_scenario_df['scenario_run'] = np.tile(
+        scenario_runs,
+        len(endpoint_scenario_df) // num_scenario_runs)
 
     # put it all together in a single data frame
     scenario_df = pd.concat([scenario_df, endpoint_scenario_df],
-                            ignore_index=True)
+                            ignore_index=True).sort_values('change_prop')
 
     # get the PLAND by interpolating it from 'change_prop'
     pland_ser = scenario_df['proportion_of_landscape'].groupby(

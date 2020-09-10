@@ -5,6 +5,7 @@ import click
 import dotenv
 import geopandas as gpd
 import pandas as pd
+import salem
 import swiss_uhi_utils as suhi
 
 from lausanne_greening_scenarios import settings
@@ -27,9 +28,9 @@ def main(agglom_lulc_filepath, agglom_extent_filepath, station_tair_filepath,
     # metadata (data array)
     agglom_extent_gdf = gpd.read_file(agglom_extent_filepath)
     crs = agglom_extent_gdf.crs
-    ref_geom = agglom_extent_gdf.loc[0]['geometry'].buffer(buffer_dist)
+    agglom_geom = agglom_extent_gdf.loc[0]['geometry'].buffer(buffer_dist)
     # lake_geom = agglom_extent_gdf.loc[1]['geometry']
-    ref_da = suhi.salem_da_from_singleband(agglom_lulc_filepath, name='lulc')
+    agglom_lulc_da = salem.open_xr_dataset(agglom_lulc_filepath)['data']
 
     # preprocess air temperature station measurements data frame (here we just
     # need the dates)
@@ -41,10 +42,10 @@ def main(agglom_lulc_filepath, agglom_extent_filepath, station_tair_filepath,
         'endpoint_url': environ.get('S3_ENDPOINT_URL')
     }
     # get the ref. evapotranpiration data array
-    ref_eto_da = suhi.get_ref_et_da(dates_ser, ref_geom, LAUSANNE_LAT, crs)
+    ref_eto_da = suhi.get_ref_et_da(dates_ser, agglom_geom, LAUSANNE_LAT, crs)
 
     # align it to the reference raster (i.e., LULC)
-    ref_eto_da = suhi.align_ds(ref_eto_da, ref_da)
+    ref_eto_da = suhi.align_ds(ref_eto_da, agglom_lulc_da)
     # dump it
     ref_eto_da.to_netcdf(dst_filepath)
     logger.info("dumped reference evapotranspiration data-array to %s",

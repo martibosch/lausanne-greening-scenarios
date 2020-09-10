@@ -1,5 +1,5 @@
-.PHONY: reclassify scenarios scenario_metrics swiss_dem station_measurements \
-	lst ref_et tair_ucm 
+.PHONY: reclassify station_measurements ref_et calibrate_ucm tair_ucm \
+	scenario_prop scenario_config scenario_endpoints scenario_metrics statpop
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -38,11 +38,8 @@ $(MODELS_DIR):
 #################################################################################
 # Utilities to be used in several tasks
 
-## variables
-CRS = EPSG:2056
 ### code
 DOWNLOAD_S3_PY := $(CODE_DIR)/download_s3.py
-UTILS_PY := $(CODE_DIR)/utils.py
 
 
 #################################################################################
@@ -124,81 +121,6 @@ reclassify: $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV)
 
 
 #################################################################################
-# Scenarios
-
-## 1. Generate scenarios
-### variables
-SCENARIO_DA_NC := $(DATA_INTERIM_DIR)/scenario-da.nc
-#### code
-CODE_SCENARIOS_DIR := $(CODE_DIR)/scenarios
-MAKE_SCENARIO_DA_PY := $(CODE_SCENARIOS_DIR)/make_scenario_da.py
-
-### rules
-$(SCENARIO_DA_NC): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
-	$(MAKE_SCENARIO_DA_PY)
-	python $(MAKE_SCENARIO_DA_PY) $(RECLASSIF_LULC_TIF) \
-		$(RECLASSIF_TABLE_CSV) $@
-scenarios: $(SCENARIO_DA_NC)
-
-## 2. Compute landscape metrics of each scenario
-### variables
-SCENARIO_METRICS_CSV := $(DATA_INTERIM_DIR)/scenario-metrics.csv
-#### code
-MAKE_SCENARIO_METRICS_PY := $(CODE_SCENARIOS_DIR)/make_scenario_metrics.py
-
-### rules
-$(SCENARIO_METRICS_CSV): $(SCENARIO_DA_NC) $(RECLASSIF_TABLE_CSV) \
-	$(MAKE_SCENARIO_METRICS_PY)
-	python $(MAKE_SCENARIO_METRICS_PY) $(SCENARIO_DA_NC) \
-		$(RECLASSIF_TABLE_CSV) $@
-scenario_metrics: $(SCENARIO_METRICS_CSV)
-
-## 3. 
-### variables
-STATPOP_URI = https://www.bfs.admin.ch/bfsstatic/dam/assets/9947069/master
-STATPOP_DIR := $(DATA_RAW_DIR)/statpop
-STATPOP_CSV := $(STATPOP_DIR)/statpop-2018.csv
-#### code
-
-### rules
-$(STATPOP_DIR): | $(DATA_RAW_DIR)
-	mkdir $@
-$(STATPOP_DIR)/%.zip: | $(STATPOP_DIR)
-	wget $(STATPOP_URI) -O $@
-$(STATPOP_DIR)/%.csv: $(STATPOP_DIR)/%.zip
-	unzip -j $< 'STATPOP2018.csv' -d $(STATPOP_DIR)
-	mv $(STATPOP_DIR)/STATPOP2018.csv $(STATPOP_CSV)
-	touch $@
-# statpop: $(STATPOP_CSV)
-
-
-#################################################################################
-# DEM
-
-DHM200_DIR := $(DATA_RAW_DIR)/dhm200
-DHM200_URI = \
-	https://data.geo.admin.ch/ch.swisstopo.digitales-hoehenmodell_25/data.zip
-DHM200_ASC := $(DHM200_DIR)/DHM200.asc
-SWISS_DEM_TIF := $(DATA_INTERIM_DIR)/swiss-dem.tif
-
-### rules
-$(DHM200_DIR): | $(DATA_RAW_DIR)
-	mkdir $@
-$(DHM200_DIR)/%.zip: | $(DHM200_DIR)
-	wget $(DHM200_URI) -O $@
-$(DHM200_DIR)/%.asc: $(DHM200_DIR)/%.zip
-	unzip -j $< 'data/DHM200*' -d $(DHM200_DIR)
-	touch $@
-#### reproject ASCII grid. See https://bit.ly/2WEBxoL
-TEMP_VRT := $(DATA_INTERIM_DIR)/temp.vrt
-$(SWISS_DEM_TIF): $(DHM200_ASC)
-	gdalwarp -s_srs EPSG:21781 -t_srs $(CRS) -of vrt $< $(TEMP_VRT)
-	gdal_translate -of GTiff $(TEMP_VRT) $@
-	rm $(TEMP_VRT)
-swiss_dem: $(SWISS_DEM_TIF)
-
-
-#################################################################################
 # STATIONS
 
 ### variables
@@ -231,15 +153,6 @@ $(STATION_TAIR_CSV): $(LANDSAT_TILES_CSV) $(STATION_RAW_FILEPATHS) \
 		$(STATION_RAW_DIR) $@
 station_measurements: $(STATION_TAIR_CSV)
 
-
-#################################################################################
-# LST
-
-MAKE_LST_PY := $(CODE_DIR)/make_lst.py
-LST_NC := $(DATA_PROCESSED_DIR)/lst-da.nc
-$(LST_NC): $(LANDSAT_TILES_CSV) $(AGGLOM_EXTENT_SHP) $(MAKE_LST_PY)
-	python $(MAKE_LST_PY) $(LANDSAT_TILES_CSV) $(AGGLOM_EXTENT_SHP) $@
-lst: $(LST_NC)
 
 #################################################################################
 # InVEST
@@ -305,6 +218,89 @@ $(TAIR_UCM_NC): $(CALIBRATED_PARAMS_JSON) $(AGGLOM_EXTENT_SHP) \
 		$(RECLASSIF_TABLE_CSV) $(REF_ET_NC) $(STATION_TAIR_CSV) \
 		$(STATION_LOCATIONS_CSV) $@
 tair_ucm: $(TAIR_UCM_NC)
+
+
+#################################################################################
+# Scenarios
+
+## 1. Generate scenario datasets when changing no pixels and when changing all
+##    pixels, since this endpoints are not affected by randomness
+### variables
+SCENARIO_ENDPOINTS_DS_NC := $(DATA_PROCESSED_DIR)/scenario-endpoints.nc
+#### code
+CODE_SCENARIOS_DIR := $(CODE_DIR)/scenarios
+MAKE_SCENARIO_DS_PY := $(CODE_SCENARIOS_DIR)/make_scenario_ds.py
+
+### rules
+$(SCENARIO_ENDPOINTS_DS_NC): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
+	$(MAKE_SCENARIO_DS_PY)
+	python $(MAKE_SCENARIO_DS_PY) $(RECLASSIF_LULC_TIF) \
+		$(RECLASSIF_TABLE_CSV) $(TAIR_UCM_NC) $(REF_ET_NC) \
+		$(CALIBRATED_PARAMS_JSON) $@ --num-scenario-runs 1 \
+		--change-prop-step 1 --include-endpoints
+scenario_endpoints: $(SCENARIO_ENDPOINTS_DS_NC)
+
+## 2. Generate scenarios with increasing proportion of (randomly sampled) pixels
+##    changed to trees
+### variables
+SCENARIO_PROP_DS_NC := $(DATA_PROCESSED_DIR)/scenario-prop.nc
+
+### rules
+$(SCENARIO_PROP_DS_NC): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
+	$(MAKE_SCENARIO_DS_PY)
+	python $(MAKE_SCENARIO_DS_PY) $(RECLASSIF_LULC_TIF) \
+		$(RECLASSIF_TABLE_CSV) $(TAIR_UCM_NC) $(REF_ET_NC) \
+		$(CALIBRATED_PARAMS_JSON) $@
+scenario_prop: $(SCENARIO_PROP_DS_NC)
+
+## 3. Generate scenarios with increasing proportion of pixels changed to trees
+##    following distinct cluster and scatter interactions to explore the effects
+##    of the spatial configuration of tree canopy
+### variables
+SCENARIO_CONFIG_DS_NC := $(DATA_PROCESSED_DIR)/scenario-config.nc
+
+### rules
+$(SCENARIO_CONFIG_DS_NC): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
+	$(MAKE_SCENARIO_DS_PY)
+	python $(MAKE_SCENARIO_DS_PY) $(RECLASSIF_LULC_TIF) \
+		$(RECLASSIF_TABLE_CSV) $(TAIR_UCM_NC) $(REF_ET_NC) \
+		$(CALIBRATED_PARAMS_JSON) $@ --interactions
+scenario_config: $(SCENARIO_CONFIG_DS_NC)
+
+## 3. Compute landscape metrics of each scenario
+### variables
+SCENARIO_METRICS_CSV := $(DATA_PROCESSED_DIR)/scenario-metrics.csv
+#### code
+MAKE_SCENARIO_METRICS_PY := $(CODE_SCENARIOS_DIR)/make_scenario_metrics.py
+
+### rules
+$(SCENARIO_METRICS_CSV): $(SCENARIO_CONFIG_DS_NC) $(SCENARIO_ENDPOINTS_DS_NC) \
+	$(RECLASSIF_TABLE_CSV) $(MAKE_SCENARIO_METRICS_PY)
+	python $(MAKE_SCENARIO_METRICS_PY) $(SCENARIO_CONFIG_DS_NC) \
+		$(SCENARIO_ENDPOINTS_DS_NC) $(RECLASSIF_TABLE_CSV) $@
+scenarios_metrics: $(SCENARIO_METRICS_CSV)
+
+
+#################################################################################
+# STATPOP
+
+### variables
+#### Statpop 2018: https://www.bfs.admin.ch/bfsstatic/dam/assets/9947069/master
+STATPOP_URI = https://www.bfs.admin.ch/bfsstatic/dam/assets/14027479/master
+STATPOP_DIR := $(DATA_RAW_DIR)/statpop
+STATPOP_CSV := $(STATPOP_DIR)/statpop-2019.csv
+#### code
+
+### rules
+$(STATPOP_DIR): | $(DATA_RAW_DIR)
+	mkdir $@
+$(STATPOP_DIR)/%.zip: | $(STATPOP_DIR)
+	wget $(STATPOP_URI) -O $@
+$(STATPOP_DIR)/%.csv: $(STATPOP_DIR)/%.zip
+	unzip -j $< 'STATPOP2019.csv' -d $(STATPOP_DIR)
+	mv $(STATPOP_DIR)/STATPOP2019.csv $(STATPOP_CSV)
+	touch $@
+statpop: $(STATPOP_CSV)
 
 
 #################################################################################

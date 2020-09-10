@@ -4,7 +4,6 @@ import tempfile
 import warnings
 
 import click
-import dotenv
 import invest_ucm_calibration as iuc
 
 from lausanne_greening_scenarios import settings
@@ -93,9 +92,5 @@ def main(agglom_lulc_filepath, biophysical_table_filepath, ref_et_filepath,
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format=settings.DEFAULT_LOG_FMT)
-
-    # find .env automagically by walking up directories until it's found, then
-    # load up the .env entries as environment variables
-    dotenv.load_dotenv(dotenv.find_dotenv())
 
     main()
