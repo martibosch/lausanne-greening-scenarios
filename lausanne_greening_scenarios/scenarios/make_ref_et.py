@@ -4,7 +4,9 @@ from os import environ
 import click
 import dotenv
 import geopandas as gpd
+import numpy as np
 import pandas as pd
+import rasterio as rio
 import salem
 import swiss_uhi_utils as suhi
 
@@ -17,10 +19,10 @@ LAUSANNE_LAT = 0.811924
 @click.command()
 @click.argument('agglom_lulc_filepath', type=click.Path(exists=True))
 @click.argument('agglom_extent_filepath', type=click.Path(exists=True))
-@click.argument('station_tair_filepath', type=click.Path(exists=True))
+@click.argument('station_t_filepath', type=click.Path(exists=True))
 @click.argument('dst_filepath', type=click.Path())
 @click.option('--buffer-dist', type=float, default=2000)
-def main(agglom_lulc_filepath, agglom_extent_filepath, station_tair_filepath,
+def main(agglom_lulc_filepath, agglom_extent_filepath, station_t_filepath,
          dst_filepath, buffer_dist):
     logger = logging.getLogger(__name__)
 
@@ -34,21 +36,28 @@ def main(agglom_lulc_filepath, agglom_extent_filepath, station_tair_filepath,
 
     # preprocess air temperature station measurements data frame (here we just
     # need the dates)
-    # station_tair_df = pd.read_csv(station_tair_filepath, index_col=0)
-    # station_tair_df.index = pd.to_datetime(station_tair_df.index)
-    dates_ser = pd.to_datetime(pd.read_csv(station_tair_filepath).iloc[:, 0])
+    date = pd.to_datetime(
+        pd.read_csv(station_t_filepath, index_col=0).iloc[:, 0].name)
 
     suhi.settings.METEOSWISS_S3_CLIENT_KWARGS = {
         'endpoint_url': environ.get('S3_ENDPOINT_URL')
     }
     # get the ref. evapotranpiration data array
-    ref_eto_da = suhi.get_ref_et_da(dates_ser, agglom_geom, LAUSANNE_LAT, crs)
+    ref_eto_da = suhi.get_ref_et_da(pd.Series([date]), agglom_geom,
+                                    LAUSANNE_LAT, crs)
 
     # align it to the reference raster (i.e., LULC)
     ref_eto_da = suhi.align_ds(ref_eto_da, agglom_lulc_da)
-    # dump it
-    ref_eto_da.to_netcdf(dst_filepath)
-    logger.info("dumped reference evapotranspiration data-array to %s",
+
+    # extract the raster from the single date of the data array
+    ref_eto_arr = ref_eto_da.isel(time=0).data
+    # dump it with the transform/projection metadata from the reference raster
+    with rio.open(agglom_lulc_filepath) as src:
+        meta = src.meta.copy()
+    meta.update(dtype=ref_eto_arr.dtype, nodata=np.nan)
+    with rio.open(dst_filepath, 'w', **meta) as dst:
+        dst.write(ref_eto_arr, 1)
+    logger.info("dumped reference evapotranspiration raster to %s",
                 dst_filepath)
 
 

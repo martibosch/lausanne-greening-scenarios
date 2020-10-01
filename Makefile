@@ -125,16 +125,15 @@ reclassify: $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV)
 
 ### variables
 STATION_RAW_DIR := $(DATA_RAW_DIR)/stations
-LANDSAT_TILES_CSV := $(DATA_RAW_DIR)/landsat-tiles.csv
 STATION_RAW_FILENAMES = station-locations.csv agrometeo-tre200s0.csv \
 	meteoswiss-lausanne-tre000s0.zip meteoswiss-lausanne-tre200s0.zip \
 	WSLLAF.txt VaudAir_EnvoiTemp20180101-20200128_EPFL_20200129.xlsx
 STATION_RAW_FILEPATHS := $(addprefix $(STATION_RAW_DIR)/, \
 	$(STATION_RAW_FILENAMES))
 STATION_LOCATIONS_CSV := $(STATION_RAW_DIR)/station-locations.csv
-STATION_TAIR_CSV := $(DATA_INTERIM_DIR)/station-tair.csv
+STATION_T_CSV := $(DATA_INTERIM_DIR)/station-t.csv
 #### code
-MAKE_STATION_TAIR_DF_PY := $(CODE_DIR)/make_station_tair_df.py
+MAKE_STATION_T_DF_PY := $(CODE_DIR)/make_station_tair_df.py
 
 ### rules
 $(STATION_RAW_DIR): | $(DATA_RAW_DIR)
@@ -147,95 +146,43 @@ endef
 $(foreach STATION_RAW_FILENAME, $(STATION_RAW_FILENAMES), \
 	$(eval $(DOWNLOAD_STATION_DATA)))
 
-$(STATION_TAIR_CSV): $(LANDSAT_TILES_CSV) $(STATION_RAW_FILEPATHS) \
-	$(MAKE_STATION_TAIR_DF_PY) | $(DATA_INTERIM_DIR)
-	python $(MAKE_STATION_TAIR_DF_PY) $(LANDSAT_TILES_CSV) \
-		$(STATION_RAW_DIR) $@
-station_measurements: $(STATION_TAIR_CSV)
-
-
-#################################################################################
-# InVEST
-
-## 0. Some code that we need for all the experiments
-### variables
-DATA_INVEST_DIR := $(DATA_INTERIM_DIR)/invest
-REF_ET_NC := $(DATA_INVEST_DIR)/ref-et.nc
-#### code
-CODE_INVEST_DIR := $(CODE_DIR)/invest
-MAKE_REF_ET_PY := $(CODE_INVEST_DIR)/make_ref_et.py
-
-### rules
-$(DATA_INVEST_DIR): | $(DATA_INTERIM_DIR)
-	mkdir $@
-$(REF_ET_NC): $(AGGLOM_LULC_TIF) $(AGGLOM_EXTENT_SHP) $(STATION_TAIR_CSV) \
-	$(MAKE_REF_ET_PY) | $(DATA_INVEST_DIR)
-	python $(MAKE_REF_ET_PY) $(AGGLOM_LULC_TIF) $(AGGLOM_EXTENT_SHP) \
-		$(STATION_TAIR_CSV) $@
-ref_et: $(REF_ET_NC)
-
-## 1. Calibrate the model
-### variables
-CALIBRATED_PARAMS_JSON := $(DATA_INVEST_DIR)/calibrated-params.json
-#### code
-MAKE_CALIBRATE_UCM_PY := $(CODE_INVEST_DIR)/make_calibrate_ucm.py
-
-### rules
-$(CALIBRATED_PARAMS_JSON): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
-	$(REF_ET_NC) $(STATION_LOCATIONS_CSV) $(STATION_TAIR_CSV) \
-	$(MAKE_CALIBRATE_UCM_PY)
-	python $(MAKE_CALIBRATE_UCM_PY) $(RECLASSIF_LULC_TIF) \
-		$(RECLASSIF_TABLE_CSV) $(REF_ET_NC) $(STATION_LOCATIONS_CSV) \
-		$(STATION_TAIR_CSV) $@
-calibrate_ucm: $(CALIBRATED_PARAMS_JSON)
-
-# ## 2. Predict an air temperature raster
-# ### variables
-# TAIR_RASTER_TIF := $(DATA_PROCESSED_DIR)/tair-raster.tif
-# #### code
-# MAKE_TAIR_RASTER_PY := $(CODE_INVEST_DIR)/make_tair_raster.py
-
-# ### rules
-# $(TAIR_RASTER_TIF): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
-# 	$(AGGLOM_EXTENT_SHP) $(REF_ET_TIF) $(STATION_TAIR_CSV) \
-# 	$(CALIBRATED_PARAMS_JSON) $(MAKE_TAIR_RASTER_PY)
-# 	python $(MAKE_TAIR_RASTER_PY) $(RECLASSIF_LULC_TIF) \
-# 		$(RECLASSIF_TABLE_CSV) $(AGGLOM_EXTENT_SHP) $(REF_ET_NC) \
-# 		$(STATION_TAIR_CSV) $(CALIBRATED_PARAMS_JSON) $@
-# tair_raster: $(TAIR_RASTER_TIF)
-## 2. Predict an air temperature data-array
-### variables
-TAIR_UCM_NC := $(DATA_PROCESSED_DIR)/tair-ucm.nc
-#### code
-MAKE_TAIR_UCM_PY := $(CODE_INVEST_DIR)/make_tair_ucm.py
-
-### rules
-$(TAIR_UCM_NC): $(CALIBRATED_PARAMS_JSON) $(AGGLOM_EXTENT_SHP) \
-	$(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) $(REF_ET_NC) \
-	$(STATION_TAIR_CSV) $(STATION_LOCATIONS_CSV) $(MAKE_TAIR_UCM_PY)
-	python $(MAKE_TAIR_UCM_PY) $(CALIBRATED_PARAMS_JSON) \
-		$(AGGLOM_EXTENT_SHP) $(RECLASSIF_LULC_TIF) \
-		$(RECLASSIF_TABLE_CSV) $(REF_ET_NC) $(STATION_TAIR_CSV) \
-		$(STATION_LOCATIONS_CSV) $@
-tair_ucm: $(TAIR_UCM_NC)
+$(STATION_T_CSV): $(STATION_RAW_FILEPATHS) \
+	$(MAKE_STATION_T_DF_PY) | $(DATA_INTERIM_DIR)
+	python $(MAKE_STATION_T_DF_PY) $(STATION_RAW_DIR) $@
+station_measurements: $(STATION_T_CSV)
 
 
 #################################################################################
 # Scenarios
+
+## 0. Preprocess the inputs required to simulate scenario temperatures with the
+##    InVEST urban cooling model
+### variables
+CALIBRATED_PARAMS_JSON := $(DATA_RAW_DIR)/invest-calibrated-params.json
+REF_ET_TIF := $(DATA_PROCESSED_DIR)/ref-et.tif
+#### code
+CODE_SCENARIOS_DIR := $(CODE_DIR)/scenarios
+MAKE_REF_ET_PY := $(CODE_SCENARIOS_DIR)/make_ref_et.py
+
+### rules
+$(REF_ET_TIF): $(AGGLOM_LULC_TIF) $(AGGLOM_EXTENT_SHP) $(STATION_T_CSV) \
+	$(MAKE_REF_ET_PY) | $(DATA_PROCESSED_DIR)
+	python $(MAKE_REF_ET_PY) $(AGGLOM_LULC_TIF) $(AGGLOM_EXTENT_SHP) \
+		$(STATION_T_CSV) $@
+ref_et: $(REF_ET_TIF)
 
 ## 1. Generate scenario datasets when changing no pixels and when changing all
 ##    pixels, since this endpoints are not affected by randomness
 ### variables
 SCENARIO_ENDPOINTS_DS_NC := $(DATA_PROCESSED_DIR)/scenario-endpoints.nc
 #### code
-CODE_SCENARIOS_DIR := $(CODE_DIR)/scenarios
 MAKE_SCENARIO_DS_PY := $(CODE_SCENARIOS_DIR)/make_scenario_ds.py
 
 ### rules
 $(SCENARIO_ENDPOINTS_DS_NC): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
-	$(MAKE_SCENARIO_DS_PY)
+	$(STATION_T_CSV) $(REF_ET_TIF) $(MAKE_SCENARIO_DS_PY)
 	python $(MAKE_SCENARIO_DS_PY) $(RECLASSIF_LULC_TIF) \
-		$(RECLASSIF_TABLE_CSV) $(TAIR_UCM_NC) $(REF_ET_NC) \
+		$(RECLASSIF_TABLE_CSV) $(STATION_T_CSV) $(REF_ET_TIF) \
 		$(CALIBRATED_PARAMS_JSON) $@ --num-scenario-runs 1 \
 		--change-prop-step 1 --include-endpoints
 scenario_endpoints: $(SCENARIO_ENDPOINTS_DS_NC)
@@ -247,9 +194,9 @@ SCENARIO_PROP_DS_NC := $(DATA_PROCESSED_DIR)/scenario-prop.nc
 
 ### rules
 $(SCENARIO_PROP_DS_NC): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
-	$(MAKE_SCENARIO_DS_PY)
+	$(STATION_T_CSV) $(REF_ET_TIF) $(MAKE_SCENARIO_DS_PY)
 	python $(MAKE_SCENARIO_DS_PY) $(RECLASSIF_LULC_TIF) \
-		$(RECLASSIF_TABLE_CSV) $(TAIR_UCM_NC) $(REF_ET_NC) \
+		$(RECLASSIF_TABLE_CSV) $(STATION_T_CSV) $(REF_ET_TIF) \
 		$(CALIBRATED_PARAMS_JSON) $@
 scenario_prop: $(SCENARIO_PROP_DS_NC)
 
@@ -261,9 +208,9 @@ SCENARIO_CONFIG_DS_NC := $(DATA_PROCESSED_DIR)/scenario-config.nc
 
 ### rules
 $(SCENARIO_CONFIG_DS_NC): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
-	$(MAKE_SCENARIO_DS_PY)
+	$(STATION_T_CSV) $(REF_ET_TIF) $(MAKE_SCENARIO_DS_PY)
 	python $(MAKE_SCENARIO_DS_PY) $(RECLASSIF_LULC_TIF) \
-		$(RECLASSIF_TABLE_CSV) $(TAIR_UCM_NC) $(REF_ET_NC) \
+		$(RECLASSIF_TABLE_CSV) $(STATION_T_CSV) $(REF_ET_TIF) \
 		$(CALIBRATED_PARAMS_JSON) $@ --interactions
 scenario_config: $(SCENARIO_CONFIG_DS_NC)
 
@@ -278,7 +225,7 @@ $(SCENARIO_METRICS_CSV): $(SCENARIO_CONFIG_DS_NC) $(SCENARIO_ENDPOINTS_DS_NC) \
 	$(RECLASSIF_TABLE_CSV) $(MAKE_SCENARIO_METRICS_PY)
 	python $(MAKE_SCENARIO_METRICS_PY) $(SCENARIO_CONFIG_DS_NC) \
 		$(SCENARIO_ENDPOINTS_DS_NC) $(RECLASSIF_TABLE_CSV) $@
-scenarios_metrics: $(SCENARIO_METRICS_CSV)
+scenario_metrics: $(SCENARIO_METRICS_CSV)
 
 
 #################################################################################
