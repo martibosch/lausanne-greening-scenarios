@@ -7,21 +7,165 @@ import click
 import dask
 import invest_ucm_calibration as iuc
 import numpy as np
+import pandas as pd
 import rasterio as rio
 import xarray as xr
 from dask import diagnostics
 from rasterio import transform
+from scipy import ndimage as ndi
 
 from lausanne_greening_scenarios import settings
-from lausanne_greening_scenarios.invest import utils as invest_utils
-from lausanne_greening_scenarios.scenarios import utils as scenario_utils
+
+ORIG_LULC_CODES = [
+    0,  # building
+    1,  # road
+    2,  # sidewalk
+    3,  # traffic island
+    7,  # other impervious
+    11,  # garden
+]
+ROAD_CODE = 1
+
+KERNEL_MOORE = ndi.generate_binary_structure(2, 2)
+
+
+class ScenarioGenerator:
+    def __init__(self,
+                 agglom_lulc_filepath,
+                 biophysical_table_filepath,
+                 orig_lulc_col='orig_lucode',
+                 lulc_col='lucode'):
+        # read the LULC raster
+        with rio.open(agglom_lulc_filepath) as src:
+            lulc_arr = src.read(1)
+            lulc_meta = src.meta.copy()
+            lulc_bounds = src.bounds
+
+        # read the biophysical table
+        biophysical_df = pd.read_csv(biophysical_table_filepath)
+
+        # exclude inner road pixels (we cannot plant trees in the middle of a
+        # highway)
+        self.inner_road_mask = ndi.binary_erosion(
+            np.isin(
+                lulc_arr, biophysical_df[biophysical_df[orig_lulc_col] ==
+                                         ROAD_CODE][lulc_col]), KERNEL_MOORE)
+
+        # increase the tree cover by changing the land cover code of
+        # roads/paths, sidewalks, blocks and other impervious surfaces to the
+        # equivalent code with greater tree cover
+        next_code_dict = {}
+        for orig_lulc_code in ORIG_LULC_CODES:
+            shade_gb = biophysical_df[biophysical_df[orig_lulc_col] ==
+                                      orig_lulc_code].groupby('shade')
+            if len(shade_gb) == 1:
+                pass
+            else:
+                for i in range(len(shade_gb)):
+                    # select lucodes that have the same base `lulc_code` and
+                    # `building_intensity`
+                    eligible_lucode_df = shade_gb.nth(i)
+                    # filter the above data frame to enforce that the
+                    # proportion tree canopy cover plus the proportion of
+                    # building cover is not more than 1 (i.e., 100% of the
+                    # pixel)
+                    eligible_lucode_df = eligible_lucode_df[
+                        eligible_lucode_df.index +
+                        eligible_lucode_df['building_intensity'] <= 1]
+                    # select the next lucode as the lucode with maximum
+                    # possible tree canopy cover
+                    next_lucode = eligible_lucode_df.iloc[-1][lulc_col]
+                    for lucode in eligible_lucode_df.iloc[:-1][lulc_col]:
+                        next_code_dict[lucode] = next_lucode
+        self.next_code_dict = next_code_dict
+        self.lulc_col = lulc_col
+
+        # save the LULC raster and biophysical table as attributes
+        self.lulc_arr = lulc_arr
+        self.lulc_meta = lulc_meta
+        self.lulc_bounds = lulc_bounds
+        self.biophysical_df = biophysical_df
+        # use this in `generate_lulc_arr`
+        self.change_df_idx = np.flatnonzero(self.lulc_arr)
+
+    def generate_lulc_arr(self, shade_threshold, change_prop,
+                          interaction=None):
+        if change_prop == 0:
+            return self.lulc_arr.copy()
+
+        # convolution
+        conv_result = ndi.convolve(
+            np.isin(
+                self.lulc_arr,
+                self.biophysical_df[self.biophysical_df['shade'] >=
+                                    shade_threshold][self.lulc_col]).astype(
+                                        np.int32), KERNEL_MOORE)
+
+        # build change data frame
+        change_df = pd.DataFrame(index=self.change_df_idx)
+
+        # get list of pixels that can be changed and their next code
+        for lucode in self.next_code_dict:
+            change_df.loc[np.flatnonzero(
+                self.lulc_arr ==
+                lucode), 'next_code'] = self.next_code_dict[lucode]
+
+        change_df['conv_result'] = conv_result.flatten()[self.change_df_idx]
+        change_df = change_df.dropna()
+        # exclude the inner road pixels
+        change_df = change_df.drop(np.flatnonzero(self.inner_road_mask),
+                                   errors='ignore')
+        change_df['next_code'] = change_df['next_code'].astype(np.int32)
+
+        if change_prop == 1:
+            pixels_to_change_df = change_df
+        else:
+            # how many pixels will be changed
+            num_to_change = int(len(change_df) * change_prop)
+
+            if interaction is None:
+                # just change pixels randomly
+                pixels_to_change_df = change_df.sample(num_to_change)
+            else:
+                # decide which pixels will be changed (depending on desired
+                # interaction between high tree cover pixels)
+                if interaction == 'cluster':
+                    ascending = False
+                else:  # scatter
+                    ascending = True
+
+                change_df = change_df.sort_values('conv_result',
+                                                  ascending=ascending)
+                last_lucode = change_df.iloc[:num_to_change][
+                    'conv_result'].iloc[-1]
+                conv_result_ser = change_df['conv_result']
+                if ascending:
+                    pixels_to_change_df = change_df[
+                        conv_result_ser < last_lucode]
+                else:
+                    pixels_to_change_df = change_df[
+                        conv_result_ser > last_lucode]
+
+                pixels_to_change_df = pd.concat([
+                    pixels_to_change_df,
+                    change_df[conv_result_ser == last_lucode].sample(
+                        num_to_change - len(pixels_to_change_df))
+                ])
+
+        # now build the new LULC array and change the pixels
+        new_lulc_arr = self.lulc_arr.copy()
+        for next_code, next_code_df in pixels_to_change_df.groupby(
+                'next_code'):
+            new_lulc_arr.ravel()[next_code_df.index] = next_code
+
+        return new_lulc_arr
 
 
 @click.command()
 @click.argument('agglom_lulc_filepath', type=click.Path(exists=True))
 @click.argument('biophysical_table_filepath', type=click.Path(exists=True))
-@click.argument('t_da_filepath', type=click.Path(exists=True))
-@click.argument('ref_et_da_filepath', type=click.Path(exists=True))
+@click.argument('station_t_filepath', type=click.Path(exists=True))
+@click.argument('ref_et_raster_filepath', type=click.Path(exists=True))
 @click.argument('calibrated_params_filepath', type=click.Path(exists=True))
 @click.argument('dst_filepath', type=click.Path())
 @click.option('--shade-threshold', default=0.75)
@@ -30,15 +174,14 @@ from lausanne_greening_scenarios.scenarios import utils as scenario_utils
 @click.option('--include-endpoints/--no-endpoints', default=False)
 @click.option('--interactions', is_flag=True)
 @click.option('--dst-t-dtype', default='float32')
-def main(agglom_lulc_filepath, biophysical_table_filepath, t_da_filepath,
-         ref_et_da_filepath, calibrated_params_filepath, dst_filepath,
+def main(agglom_lulc_filepath, biophysical_table_filepath, station_t_filepath,
+         ref_et_raster_filepath, calibrated_params_filepath, dst_filepath,
          shade_threshold, num_scenario_runs, change_prop_step,
          include_endpoints, interactions, dst_t_dtype):
     logger = logging.getLogger(__name__)
 
     # 1. generate a data array with the scenario land use/land cover
-    sg = scenario_utils.ScenarioGenerator(agglom_lulc_filepath,
-                                          biophysical_table_filepath)
+    sg = ScenarioGenerator(agglom_lulc_filepath, biophysical_table_filepath)
 
     scenario_runs = range(num_scenario_runs)
     # change_props = rn.uniform(size=num_scenario_samples)
@@ -103,26 +246,16 @@ def main(agglom_lulc_filepath, biophysical_table_filepath, t_da_filepath,
 
     # 2. simulate the air temperature (of the day with maximum UHI magnitude)
     #    for each scenario LULC array
-    # 2.1 select the date of maximum UHI magnitude
-    t_da = xr.open_dataarray(t_da_filepath)
-    max_uhi_date = t_da.isel(time=(t_da.max(dim=['x', 'y']) - t_da.min(
-        dim=['x', 'y'])).argmax())['time'].dt.strftime('%Y-%m-%d').item()
-    t_da = t_da.sel(time=max_uhi_date)
-    t_ref = t_da.min().item()
-    uhi_max = t_da.max().item() - t_ref
+    # 2.1 get the reference temperature and the UHI magnitude
+    station_t_df = pd.read_csv(station_t_filepath, index_col=0)
+    t_ref = station_t_df.min()
+    uhi_max = station_t_df.max() - t_ref
 
-    # 2.2 dump the ref. ET raster of the selected date to a tmp file
-    ref_et_da = xr.open_dataarray(ref_et_da_filepath).sel(time=max_uhi_date)
-    tmp_dir = tempfile.mkdtemp()
-    ref_et_raster_filepath = invest_utils.dump_ref_et_raster(
-        ref_et_da, max_uhi_date, tmp_dir,
-        invest_utils.get_da_rio_meta(ref_et_da))
-
-    # 2.3 load the calibrated parameters of the UCM
+    # 2.2 load the calibrated parameters of the UCM
     with open(calibrated_params_filepath) as src:
         ucm_params = json.load(src)
 
-    # 2.4 execute (at scale) the model for each scenario LULC array
+    # 2.3 execute (at scale) the model for each scenario LULC array
     rio_meta = sg.lulc_meta.copy()
 
     # define the function here so that the fixed arguments are curried

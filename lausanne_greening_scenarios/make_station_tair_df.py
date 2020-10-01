@@ -9,36 +9,25 @@ from pylandsat import utils as pylandsat_utils
 
 from lausanne_greening_scenarios import settings
 
+# some stations have problematic nan values (e.g., 23513847), so we need to
+# filter them by setting a maximum valid temperature
+T_VALID = 50
+
 
 @click.command()
-@click.argument('landsat_tiles_filepath', type=click.Path(exists=True))
 @click.argument('station_data_dir', type=click.Path(exists=True))
 @click.argument('dst_filepath', type=click.Path())
+@click.option('--date-start', default='2018-06-01')
+@click.option('--date-end', default='2019-08-31')
 @click.option('--hour', default=21)
-def main(landsat_tiles_filepath, station_data_dir, dst_filepath, hour):
+@click.option('--t-min', default=20)
+def main(station_data_dir, dst_filepath, date_start, date_end, hour, t_min):
     logger = logging.getLogger(__name__)
 
-    # # read calibration dates
-    # calibration_dates = pd.to_datetime(
-    #     pd.read_csv(calibration_dates_filepath, header=None)[0]).to_list()
-
-    # # for each date, get the datetime for the hour for which we want to get
-    # # the temperature
-    # calibration_datetimes = [
-    #     calibration_date + HOUR_TD for calibration_date in calibration_dates
-    # ]
-    # get landsat dates
-    landsat_dates = [
-        pylandsat_utils.meta_from_pid(landsat_tile)['acquisition_date']
-        for landsat_tile in pd.read_csv(landsat_tiles_filepath, header=None)[0]
-    ]
-
-    # for each date, get the datetime for the hour for which we want to get
-    # the temperature
-    hour_td = datetime.timedelta(hours=hour)
-    landsat_datetimes = [
-        landsat_date + hour_td for landsat_date in landsat_dates
-    ]
+    # get the list of datetimes for which we will retrieve the station
+    # measurements
+    datetimes = pd.date_range(date_start, date_end,
+                              freq='D') + datetime.timedelta(hours=hour)
 
     # assemble a data frame of station temperature measurements
     dfs = []
@@ -49,7 +38,7 @@ def main(landsat_tiles_filepath, station_data_dir, dst_filepath, hour):
             suhi.df_from_meteoswiss_zip(
                 path.join(station_data_dir,
                           f'meteoswiss-lausanne-{tair_column}.zip'),
-                tair_column).loc[landsat_datetimes].reset_index().groupby(
+                tair_column).loc[datetimes].reset_index().groupby(
                     'time').first())
 
     # 2. VaudAir
@@ -62,25 +51,31 @@ def main(landsat_tiles_filepath, station_data_dir, dst_filepath, hour):
     for column in vaudair_df.columns:
         vaudair_df[column] = pd.to_numeric(vaudair_df[column])
 
-    dfs.append(vaudair_df.loc[landsat_datetimes])
+    dfs.append(vaudair_df.loc[datetimes])
 
     # 3. Agrometeo
     dfs.append(
         suhi.df_from_agrometeo(
             path.join(station_data_dir,
-                      'agrometeo-tre200s0.csv')).loc[landsat_datetimes])
+                      'agrometeo-tre200s0.csv')).loc[datetimes])
 
     # 4. WSL
     dfs.append(
         suhi.df_from_wsl(path.join(station_data_dir, 'WSLLAF.txt'),
-                         'WSLLAF').loc[landsat_datetimes])
+                         'WSLLAF').loc[datetimes])
 
     # assemble the dataframe
     df = pd.concat(dfs, axis=1)
     # keep only the dates in the index
     df.index = pd.Series(df.index).dt.date
-    # dump it (need to dump the index in this case)
-    df.to_csv(dst_filepath)
+
+    # filter days with only valid observations
+    valid_df = df[(~df.isna().any(axis=1)) & (df.max(axis=1) < T_VALID) &
+                  (df.min(axis=1) > t_min)]
+    # dump the day with maximum UHI magnitude (need to dump the index in this
+    # case)
+    valid_df.iloc[(valid_df.max(axis=1) -
+                   valid_df.min(axis=1)).argmax()].to_csv(dst_filepath)
     logger.info("dumped air temperature station measurements to %s",
                 dst_filepath)
 

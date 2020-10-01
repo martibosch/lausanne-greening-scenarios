@@ -10,7 +10,6 @@ dependencies:
     - natcap.invest==3.8.0
     - git+git://github.com/woodcrafty/PyETo.git@0b7ac9f149f4c89c5b5759a875010c521aa07f0f
     - pygeoprocessing==1.9.2
-    - pylandsat==0.2
     - salem==0.3.0
     - git+git://github.com/martibosch/swiss-uhi-utils.git@0166029edc611ef8544942dbc1ea3408fe1ded15
   - setuptools
@@ -24,6 +23,7 @@ dependencies:
   - python=3
   - ipykernel
   - boto3
+  - contextily
   - descartes
   - fsspec
   - gdal<3.0
