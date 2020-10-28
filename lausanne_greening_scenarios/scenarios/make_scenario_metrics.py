@@ -22,20 +22,15 @@ METRICS = ['area_mn', 'edge_density', 'shape_index_mn']
 
 
 @click.command()
-@click.argument('scenario_config_filepath', type=click.Path(exists=True))
-@click.argument('scenario_endpoints_filepath', type=click.Path(exists=True))
+@click.argument('scenario_ds_filepath', type=click.Path(exists=True))
 @click.argument('biophysical_table_filepath', type=click.Path(exists=True))
 @click.argument('dst_filepath', type=click.Path())
 @click.option('--shade-threshold', default=0.75)
-def main(scenario_config_filepath, scenario_endpoints_filepath,
-         biophysical_table_filepath, dst_filepath, shade_threshold):
+def main(scenario_ds_filepath, biophysical_table_filepath, dst_filepath,
+         shade_threshold):
     logger = logging.getLogger(__name__)
 
-    scenario_ds = xr.concat([
-        xr.open_dataset(scenario_ds_filepath) for scenario_ds_filepath in
-        [scenario_config_filepath, scenario_endpoints_filepath]
-    ],
-                            dim='change_prop')
+    scenario_ds = xr.open_dataset(scenario_ds_filepath)
     scenario_lulc_da = scenario_ds['LULC']
 
     # scenario_dims = scenario_lulc_da.coords.dims[:2]
