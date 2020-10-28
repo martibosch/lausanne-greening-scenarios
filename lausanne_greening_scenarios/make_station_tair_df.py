@@ -5,7 +5,6 @@ from os import path
 import click
 import pandas as pd
 import swiss_uhi_utils as suhi
-from pylandsat import utils as pylandsat_utils
 
 from lausanne_greening_scenarios import settings
 

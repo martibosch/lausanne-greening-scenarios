@@ -1,5 +1,5 @@
-.PHONY: reclassify station_measurements ref_et calibrate_ucm tair_ucm \
-	scenario_prop scenario_config scenario_endpoints scenario_metrics statpop
+.PHONY: reclassify station_measurements ref_et calibrate_ucm tair_ucm scenarios \
+	scenario_metrics statpop
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -171,60 +171,31 @@ $(REF_ET_TIF): $(AGGLOM_LULC_TIF) $(AGGLOM_EXTENT_SHP) $(STATION_T_CSV) \
 		$(STATION_T_CSV) $@
 ref_et: $(REF_ET_TIF)
 
-## 1. Generate scenario datasets when changing no pixels and when changing all
-##    pixels, since this endpoints are not affected by randomness
+## 1. Generate scenario datasets
 ### variables
-SCENARIO_ENDPOINTS_DS_NC := $(DATA_PROCESSED_DIR)/scenario-endpoints.nc
+SCENARIO_DS_NC := $(DATA_PROCESSED_DIR)/scenarios.nc
 #### code
 MAKE_SCENARIO_DS_PY := $(CODE_SCENARIOS_DIR)/make_scenario_ds.py
 
 ### rules
-$(SCENARIO_ENDPOINTS_DS_NC): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
-	$(STATION_T_CSV) $(REF_ET_TIF) $(MAKE_SCENARIO_DS_PY)
-	python $(MAKE_SCENARIO_DS_PY) $(RECLASSIF_LULC_TIF) \
-		$(RECLASSIF_TABLE_CSV) $(STATION_T_CSV) $(REF_ET_TIF) \
-		$(CALIBRATED_PARAMS_JSON) $@ --num-scenario-runs 1 \
-		--change-prop-step 1 --include-endpoints
-scenario_endpoints: $(SCENARIO_ENDPOINTS_DS_NC)
-
-## 2. Generate scenarios with increasing proportion of (randomly sampled) pixels
-##    changed to trees
-### variables
-SCENARIO_PROP_DS_NC := $(DATA_PROCESSED_DIR)/scenario-prop.nc
-
-### rules
-$(SCENARIO_PROP_DS_NC): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
+$(SCENARIO_DS_NC): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
 	$(STATION_T_CSV) $(REF_ET_TIF) $(MAKE_SCENARIO_DS_PY)
 	python $(MAKE_SCENARIO_DS_PY) $(RECLASSIF_LULC_TIF) \
 		$(RECLASSIF_TABLE_CSV) $(STATION_T_CSV) $(REF_ET_TIF) \
 		$(CALIBRATED_PARAMS_JSON) $@
-scenario_prop: $(SCENARIO_PROP_DS_NC)
+scenarios: $(SCENARIO_DS_NC)
 
-## 3. Generate scenarios with increasing proportion of pixels changed to trees
-##    following distinct cluster and scatter interactions to explore the effects
-##    of the spatial configuration of tree canopy
-### variables
-SCENARIO_CONFIG_DS_NC := $(DATA_PROCESSED_DIR)/scenario-config.nc
-
-### rules
-$(SCENARIO_CONFIG_DS_NC): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
-	$(STATION_T_CSV) $(REF_ET_TIF) $(MAKE_SCENARIO_DS_PY)
-	python $(MAKE_SCENARIO_DS_PY) $(RECLASSIF_LULC_TIF) \
-		$(RECLASSIF_TABLE_CSV) $(STATION_T_CSV) $(REF_ET_TIF) \
-		$(CALIBRATED_PARAMS_JSON) $@ --interactions
-scenario_config: $(SCENARIO_CONFIG_DS_NC)
-
-## 3. Compute landscape metrics of each scenario
+## 2. Compute landscape metrics of each scenario
 ### variables
 SCENARIO_METRICS_CSV := $(DATA_PROCESSED_DIR)/scenario-metrics.csv
 #### code
 MAKE_SCENARIO_METRICS_PY := $(CODE_SCENARIOS_DIR)/make_scenario_metrics.py
 
 ### rules
-$(SCENARIO_METRICS_CSV): $(SCENARIO_CONFIG_DS_NC) $(SCENARIO_ENDPOINTS_DS_NC) \
-	$(RECLASSIF_TABLE_CSV) $(MAKE_SCENARIO_METRICS_PY)
-	python $(MAKE_SCENARIO_METRICS_PY) $(SCENARIO_CONFIG_DS_NC) \
-		$(SCENARIO_ENDPOINTS_DS_NC) $(RECLASSIF_TABLE_CSV) $@
+$(SCENARIO_METRICS_CSV): $(SCENARIO_DS_NC) $(RECLASSIF_TABLE_CSV) \
+	$(MAKE_SCENARIO_METRICS_PY)
+	python $(MAKE_SCENARIO_METRICS_PY) $(SCENARIO_DS_NC) \
+		$(RECLASSIF_TABLE_CSV) $@
 scenario_metrics: $(SCENARIO_METRICS_CSV)
 
 
