@@ -1,23 +1,27 @@
-import itertools
-
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-APPROACHES = ['random', 'scatter', 'cluster']
+REF_APPROACH = 'random'
+OTHER_APPROACHES = ['scatter', 'cluster']
 
 
-def _get_approach_comparison_cols(approaches):
+def _get_approach_comparison_cols(ref_approach, other_approaches):
     return [
-        f'{first_approach}-{second_approach}'
-        for first_approach, second_approach in itertools.combinations(
-            approaches, 2)
+        f'{ref_approach}-{other_approach}'
+        for other_approach in other_approaches
     ]
 
 
-def get_comparison_df(df, y, approaches=None, sortby=None):
-    if approaches is None:
+def get_comparison_df(df,
+                      y,
+                      ref_approach=None,
+                      other_approaches=None,
+                      sortby=None):
+    if ref_approach is None:
+        ref_approach = REF_APPROACH
+    if other_approaches is None:
         # approaches = df['interaction'].unique()
-        approaches = APPROACHES
+        other_approaches = OTHER_APPROACHES
 
     if sortby is None:
         sortby = ['change_prop']
@@ -27,17 +31,10 @@ def get_comparison_df(df, y, approaches=None, sortby=None):
     def _get_approach_df(approach):
         return df[df['interaction'] == approach].sort_values(sortby)
 
-    approach_pairs = itertools.combinations(approaches, 2)
-    first_approach, second_approach = next(approach_pairs)
-    comparison_df = _get_approach_df(first_approach).drop('interaction',
-                                                          axis=1)
-    comparison_df[f'{first_approach}-{second_approach}'] = comparison_df[
-        y] - _get_approach_df(second_approach)[y].values
-    for first_approach, second_approach in approach_pairs:
-        comparison_df[
-            f'{first_approach}-{second_approach}'] = _get_approach_df(
-                first_approach)[y].values - _get_approach_df(
-                    second_approach)[y].values
+    comparison_df = _get_approach_df(ref_approach).drop('interaction', axis=1)
+    for other_approach in other_approaches:
+        comparison_df[f'{ref_approach}-{other_approach}'] = comparison_df[
+            y].values - _get_approach_df(other_approach)[y].values
 
     return comparison_df
 
@@ -45,11 +42,15 @@ def get_comparison_df(df, y, approaches=None, sortby=None):
 def get_absolute_comparison_df(comparison_df,
                                groupby,
                                y=None,
-                               approaches=None,
+                               ref_approach=None,
+                               other_approaches=None,
                                agg='mean'):
-    if approaches is None:
-        approaches = APPROACHES
-    cols = groupby + _get_approach_comparison_cols(approaches)
+    if ref_approach is None:
+        ref_approach = REF_APPROACH
+    if other_approaches is None:
+        other_approaches = OTHER_APPROACHES
+    cols = groupby + _get_approach_comparison_cols(ref_approach,
+                                                   other_approaches)
     if y is not None:
         cols = [y] + cols
     return comparison_df[cols].groupby(groupby).agg(agg)
@@ -58,11 +59,15 @@ def get_absolute_comparison_df(comparison_df,
 def get_relative_comparison_df(comparison_df,
                                groupby,
                                y,
-                               approaches=None,
+                               ref_approach=None,
+                               other_approaches=None,
                                by_group_totals=False):
-    if approaches is None:
-        approaches = APPROACHES
-    approach_comparison_cols = _get_approach_comparison_cols(approaches)
+    if ref_approach is None:
+        ref_approach = REF_APPROACH
+    if other_approaches is None:
+        other_approaches = OTHER_APPROACHES
+    approach_comparison_cols = _get_approach_comparison_cols(
+        ref_approach, other_approaches)
     divisor = comparison_df[y]
     if by_group_totals:
         divisor = divisor.groupby(
@@ -76,12 +81,14 @@ def get_relative_comparison_df(comparison_df,
 def plot_approach_comparison(comparison_df,
                              x,
                              hue,
-                             approaches=None,
+                             ref_approach=None,
+                             other_approaches=None,
                              base_figsize=None,
                              **barplot_kws):
-
-    if approaches is None:
-        approaches = APPROACHES
+    if ref_approach is None:
+        ref_approach = REF_APPROACH
+    if other_approaches is None:
+        other_approaches = OTHER_APPROACHES
 
     if base_figsize is None:
         figwidth, figheight = plt.rcParams['figure.figsize']
@@ -91,24 +98,21 @@ def plot_approach_comparison(comparison_df,
     if barplot_kws is None:
         barplot_kws = {}
 
-    approach_pairs = list(itertools.combinations(approaches, 2))
-    num_pairs = len(approach_pairs)
-
+    num_pairs = len(other_approaches)
     fig, axes = plt.subplots(1,
                              num_pairs,
                              figsize=(num_pairs * figwidth, figheight),
                              sharex=True,
                              sharey=True)
 
-    for (first_approach, second_approach), ax in zip(approach_pairs,
-                                                     axes.flat):
+    for other_approach, ax in zip(other_approaches, axes.flat):
         sns.barplot(x=x,
-                    y=f'{first_approach}-{second_approach}',
+                    y=f'{ref_approach}-{other_approach}',
                     hue=hue,
                     data=comparison_df,
                     ax=ax,
                     **barplot_kws)
-        ax.set_ylabel('$N_{%s} - N_{%s}$' % (first_approach, second_approach))
+        ax.set_ylabel('$N_{%s} - N_{%s}$' % (ref_approach, other_approach))
         ax.axhline(0, color='gray', linestyle='--')
 
     return fig

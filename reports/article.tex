@@ -98,28 +98,31 @@
 
 % title goes here:
 \begin{flushleft}
-{\Large Spatially-explicit simulation of urban heat mitigation by increasing the tree canopy cover
-\textbf\newline{}
-}
-\newline
-% authors go here:
-\\
-Mart\'i Bosch\textsuperscript{1,*},
-Maxence Locatelli\textsuperscript{1},
-Perrine Hamel\textsuperscript{2},
-R\'emi Jaligot\textsuperscript{1},
-J\'er\^ome Chenal\textsuperscript{1},
-St\'ephane Joost\textsuperscript{3}
-\\
-\bigskip
-\bf{1} Urban and Regional Planning Community, \'Ecole Polytechnique F\'ed\'erale de Lausanne, Lausanne, Switzerland
-\\ 
-\bf{2} Asian School of the Environment, Nanyang Technological University, Singapore
-\\
-\bf{3} Laboratory of Geographic Information Systems, \'Ecole Polytechnique F\'ed\'erale de Lausanne, Lausanne, Switzerland
-\\
-\bigskip
-\bf{*} Corresponding author: marti.bosch@epfl.ch
+  {
+    % \Large Spatially-explicit simulation of urban heat mitigation by increasing the tree canopy cover
+    % \Large Targeted urban greening strategies for urban heat mitigation: a spatially-explicit approach
+    \Large Evaluating urban greening scenarios for urban heat mitigation: a spatially-explicit approach
+    \textbf\newline{}
+  }
+  \newline
+  % authors go here:
+  \\
+  Mart\'i Bosch\textsuperscript{1,*},
+  Maxence Locatelli\textsuperscript{1},
+  Perrine Hamel\textsuperscript{2},
+  R\'emi Jaligot\textsuperscript{1},
+  J\'er\^ome Chenal\textsuperscript{1},
+  St\'ephane Joost\textsuperscript{3,1}
+  \\
+  \bigskip
+  \bf{1} Urban and Regional Planning Community, \'Ecole Polytechnique F\'ed\'erale de Lausanne, Lausanne, Switzerland
+  \\ 
+  \bf{2} Asian School of the Environment, Nanyang Technological University, Singapore
+  \\
+  \bf{3} Laboratory of Geographic Information Systems, \'Ecole Polytechnique F\'ed\'erale de Lausanne, Lausanne, Switzerland
+  \\
+  \bigskip
+  \bf{*} Corresponding author: marti.bosch@epfl.ch
 
 \end{flushleft}
 
@@ -128,13 +131,14 @@ St\'ephane Joost\textsuperscript{3}
 % Urban green space, especially trees, can contribute to the reduction of urban temperatures in extreme heat events.
 Urban green infrastructure, especially trees, are widely regarded as one of the most effective ways to reducing urban temperatures in extreme heat events, and alleviate its adverse impacts on human health and well-being.
 % Nevertheless, the effect of the spatial pattern on urban temperatures.
-Nevertheless, urban planners and decision-makers are still lacking methods and tools to spatially assess the cooling effects of urban green spaces and exploit them to assess greening strategies at the urban agglomeration scale.
+Nevertheless, urban planners and decision-makers are still lacking methods and tools to spatially evaluate the cooling effects of urban green spaces and exploit them to assess greening strategies at the urban agglomeration scale.
 This article introduces a novel spatially-explicit approach to simulate urban greening scenarios by increasing the tree canopy cover in the existing urban fabric, and evaluating their heat mitigation potential.
 The latter is achieved by applying the InVEST urban cooling model to the synthetic land use/land cover maps generated for the greening scenarios.
-An case study in the urban agglomeration of Lausanne, Switzerland, experiments with a range of tree canopy increases in distinct spatial configurations, and shows a potential alleviation of the urban nighttime temperatures of up to 2$\degree$C.
+% A case study in the urban agglomeration of Lausanne, Switzerland, experiments with a range of tree canopy increases in distinct spatial configurations, and shows a potential alleviation of the urban nighttime temperatures of up to 2$\degree$C.
+A case study in the urban agglomeration of Lausanne, Switzerland, illustrates the development of tree canopy scenarios following distinct spatial distribution strategies.
 The spatial pattern of the tree canopy strongly influences the human exposure to the highest temperatures, and small increases in the abundance of tree canopy cover with the appropriate spatial configuration can have major impacts on human health and well-being.
 % This article
-The proposed approach can serve to support urban planning and design adaptative solutions to enhance climate resilience.
+The proposed approach supports urban planning and the design of nature-based solutions to enhance climate resilience.
 
 
 % now start line numbers
@@ -165,7 +169,7 @@ As urban areas grow and global temperatures rise, the UHI effect is expected to 
 % Green infrastructure
 
 % To that end, cities are increasingly
-Increasing urban green space, especially the urban tree canopy, has been one of the most widely advocated strategies of urban heat mitigation, nevertheless, the impacts of the urban tree canopy on air temperature show a complex spatial behaviour that remains poorly understood \cite{bowler2010urban,phelan2015urban,koc2018evaluating}.
+Increasing urban green space, especially the urban tree canopy, has been one of the most widely advocated strategies of urban heat mitigation. Nevertheless, the impacts of the urban tree canopy on air temperature show a complex spatial behaviour that remains poorly understood \cite{bowler2010urban,phelan2015urban,koc2018evaluating}.
 % Therefore, there is an urgent need to develop robust and spatially explicit methods to quantify the contribution of urban green space to urban heat mitigation \cite{haaland2015challenges,artmann2019urban}.
 % Therefore, the extent to which cities can use green infrastructure to reduce heat stress remains uncertain.
 % TODO: While many case studies have reproted strong evidence of the heat mitigation of urban green space, e.g., cooling effects of parks, very few studies have attempted to model such effects in space so that synthetic scenarios can be evaluated
@@ -193,13 +197,19 @@ The proposed method consists of two major parts.
 First, synthetic scenarios are generated by increasing the tree canopy cover in candidate locations where the existing urban fabric permits it. % In order to explore the effects of the abundance and A set of 
 % is applied with the LULC map that corresponds to
 Then, the spatial distribution of air temperature of each synthetic scenario is estimated with the InVEST urban cooling model, which simulates urban heat mitigation based on three biophysical processes, namely shade, evapotranspiration and albedo. % which simulates urban heat mitigation based on the shade, evapotranspiration and albedo of the urban fabric.
-By applying such a procedure in the urban agglomeration of Lausanne, Switzerland, this study aims to map the heat mitigation potential that can be achieved departing from the existing urban fabric.
-In order to quantify the effects of the abundance and spatial configuration of the tree canopy cover on urban heat mitigation, a set of synthetic scenarios are generated by increasing different proportions of tree canopy cover in distinct spatial configurations. % and human thermal comfort
+% Additionally, the human exposure to urban heat is evaluated in each scenario by coupling the simulated temperature map with a gridded population census.
+Finally, the simulated temperature map is coupled with a gridded population census in order to evaluate the human exposure to urban heat in the scenario.
+By applying such a procedure in the urban agglomeration of Lausanne, Switzerland, this study aims to map the heat mitigation potential that can be achieved starting from the existing urban fabric.
+With the aim of quantifying the effects of the abundance and spatial configuration of the tree canopy cover on urban heat mitigation, a set of synthetic scenarios are generated by increasing different proportions of tree canopy cover in distinct spatial configurations. % and human thermal comfort
 % The latter is achieved by coupling a gridded population census with the temperature maps simulated with different proportions and spatial configurations of tree canopy cover.
-Additionally, the human exposure to urban heat is evaluated in each scenario by coupling the simulated temperature map with a gridded population census.
-% TODO: the aim is to do something that helps planning
+% Additionally, the human exposure to urban heat is evaluated in each scenario by coupling the simulated temperature map with a gridded population census.
 % The results 
-
+% TODO: similar studies in the region
+% In another study on the mitigation of the urban heat island in Lausanne, Labedens et al. \cite{labedens2018modeling}
+% In a study of impact of densification on the urban climate of the Lausanne area, Labedens et al. \cite{labedens2018modeling} explore heat mitigation strategies and determine that green roofs, vegetal walls and the increase of the albedo of the building materials can partially mitigate the impact of future urban densification, especially at nighttime.
+% In a study of heat mitigation strategies in the Lausanne area, Labedens et al. \cite{labedens2018modeling} use a mesoscale numerical model to evaluate a set of future scenarios. Their results suggest that while the projected urban densification leads to higher temperatures, such an effect can be significantly alleviated with the use of green roofs, vegetal walls and especially the increase of the albedo of the building materials.
+% The present article explores a complementary approach
+% The approach of this article foucses on the
 
 \section*{Materials and Methods}
 
@@ -234,8 +244,8 @@ A more thorough description of the model and the data inputs can be found in Bos
 % Finally, the $T_{air}$ values of each pixel $T_i^{no \, mix}$ are spatially averaged using a Gaussian function with a kernel radius $r$ defined by the user.
 % Following the calibration of the model to the same study area by Bosch et al. \cite{bosch2020spatially}, the values of the cooling capacity weights have been set to $w_{S} = 0.59$, $w_{AL} = 0.24$ and $w_{ET} = 0.17$, the distance over which green spaces have a cooling effect $d_{cool}$ and the air mixing radius $r$ have been set to 89.21 and 236.02~m respectively.
 
-The parameters of the model have been set based on its calibration to the same study area by Bosch et al. \cite{bosch2020spatially}.
-Finally, the rural reference temperature ($T_{ref}$) and UHI magnitude ($UHI_{max}$) values have been set based on the air temperature of 11 monitoring stations in the study area (see \autoref{fig:monitoring-stations}). More precisely, $T_{ref}$ has been set as the 9 p.m. air temperature measurement --- the moment of maximal UHI intensity in Switzerland \cite{burgst2019representing} --- of the station showing the lowest temperature value, and $UHI_{max}$ has been set as the difference between the 9 p.m. temperature measurement of the station showing the highest temperature value and $T_{ref}$.
+The parameters of the model are set based on its calibration to the same study area in previous work \cite{bosch2020spatially}.
+Finally, the rural reference temperature ($T_{ref}$) and UHI magnitude ($UHI_{max}$) values are derived from the air temperature of 11 monitoring stations in the study area (see \autoref{fig:monitoring-stations}). More precisely, $T_{ref}$ is set as the 9 p.m. air temperature measurement --- the moment of maximal UHI intensity in Switzerland \cite{burgst2019representing} --- of the station showing the lowest temperature value, and $UHI_{max}$ is set as the difference between the 9 p.m. temperature measurement of the station showing the highest temperature value and $T_{ref}$.
 % Given that the UHI effect in Switzerland reaches its maximal intensity around 9 p.m. \cite{burgst2019representing}, this study evaluates it based on the air temperature observations of that hour.
 With the above definitions, a reference day for the simulations has been selected from the 2018-2019 period as the day showing the maximum $UHI_{max}$ with $T_{ref} > 20$. Such a date corresponds to July 27$^{th}$ 2018, with $T_{ref} = 20.60 \degree C$ and $UHI_{max} = 7.38 \degree C$.
 
@@ -288,7 +298,7 @@ Finally, in order to adapt the biophysical table of the InVEST urban cooling mod
 % One of the main advantages of using models based on biophysical mechanisms is that they allow for reasonable
 % Departing from the refined LULC map, a set of synthetic scenarios will be simulated by altering the LULC classes of certain pixels in a way that corresponds to reasonable transformations that could occcur in urban areas.
 % More precisely, in order to mimic scenarios of urban greening, pixels whose base LULC class corresponds to roads, sidewalks, traffic islands and other impervious surfaces will be changed to the LULC code that has the same base class but with the highest tree cover, e.g.,  pixels of a post-refinement class ``sidewalk with low tree/low building cover'' would be changed to ``sidewalk with high tree/low building cover''.
-Departing from the refined LULC map, a set of urban greening scenarios will be simulated by altering the LULC classes of certain candidate pixels in a way that corresponds to reasonable transformations that could occcur in urban areas.
+Starting from the refined LULC map, a set of urban greening scenarios are generated by altering the LULC classes of certain candidate pixels in a way that corresponds to reasonable transformations that could occcur in urban areas.
 More precisely, pixels whose base LULC class corresponds to ``building'', ``road, path'', ``sidewalk'', ``traffic island'', ``other impervious'' and ``garden'' are changed to the LULC code that has the same base class but with the highest tree cover, e.g.,  pixels of a post-refinement class ``sidewalk with low tree/low building cover'' are be changed to ``sidewalk with high tree/low building cover''.
 % limit such that the proportion of tree canopy cover and the proportion of building cover (i.e., "shade" + "bulding_intensity") does not amount to more than 100\%
 In order to ensure that such an increase of the tree canopy cover is performed only where the existing urban fabric permits it, pixels might only be transformed when two conditions are met.
@@ -303,10 +313,13 @@ Secondly, pixels of the ``road, path'' class might only be transformed when they
 % After mapping the candidate pixels where the tree canopy cover can be increased, a collection of scenarios is generated in order to evaluate the effect of both the abundance and spatial configuration of the tree canopy cover on air temperature.
 % a set of scenarios is generated by transforming a 25, 50, 75 and 100\% of the pixels where the tree canopy cover can be increased.
 % Each scenario is characterized by two key features, i.e., the proportion of candidate pixels where the tree canopy is increased
-After mapping the candidate pixels where the tree canopy cover can be increased, a scenario can be generated with two key parameters, i.e., the overall proportion of candidate pixels where the tree canopy is actually increased, and the way in which the candidate pixels where such a transformation occurs are spatially sampled.
-In order to evaluate the effect of the abundance of tree canopy cover on air temperature, a set of scenarios is generated by transforming a 12.5, 25, 37.5, 50, 62.5, 75 and 87.5\% of the candidate pixels respectively.
-For each of the foregoing proportions, three distinct approaches to spatially sample from the candidate pixels are used. The first consists in randomly sampling from the candidate pixels until the desired proportion of changed pixels is matched.
-In the second and third approaches, the candidate pixels are sampled according to the number of pixels with high tree canopy cover (i.e., greater than 75\%) found in their Moore neighborhood, that is, in the second approach, pixels with higher number of high tree canopy cover neighbors are transformed first, which intends to spatially cluster pixels of high tree canopy cover, whereas the third approach intends to spatially scatter pixels of high tree canopy cover by giving precedence to pixels with lower number of high tree canopy neighbors.
+% After mapping the candidate pixels where the tree canopy cover can be increased, a scenario can be generated with two key attributes, i.e., the overall proportion of candidate pixels where the tree canopy is actually increased, and the way in which the candidate pixels where such a transformation occurs are spatially sampled.
+After mapping the candidate pixels where the tree canopy cover can be increased, scenarios are generated based on two key attributes: the extent of tree canopy conversion (expressed as a proportion of the total number of candidate pixels), and the selection of pixels to be converted.
+% In order to evaluate the effect of the abundance of tree canopy cover on air temperature, a set of scenarios is generated by transforming a 12.5, 25, 37.5, 50, 62.5, 75 and 87.5\% of the candidate pixels respectively.
+A set of scenarios is generated by transforming a 12.5, 25, 37.5, 50, 62.5, 75 and 87.5\% of the candidate pixels respectively.
+For each of these canopy areas, three distinct selection approaches are used. The first consists in randomly sampling from the candidate pixels until the desired proportion of changed pixels is matched.
+In the second and third approaches, the candidate pixels are sampled according to the number of pixels with high tree canopy cover (i.e., greater than 75\%) found in their Moore neighborhood (i.e., the 8 adjacent pixels). In the second approach, pixels with higher number of high tree canopy cover neighbors are transformed first, which intends to spatially cluster pixels of high tree canopy cover.
+The third approach intends to spatially scatter pixels of high tree canopy cover by prioritizing pixels with lower number of high tree canopy neighbors.
 % The final collection of scenarios is generated by transforming a 12.5, 25, 37.5, 50, 62.5, 75 and 87.5 of the candidate pixels.
 Given that the three sampling approaches are stochastic, for each scenario configuration, i.e., each pair of proportion of transformed candidate pixels and sampling approach, the corresponding temperature maps will be computed by averaging a number of simulation runs. 
 After observing little variability among the simulation results, the number of runs of a each configuration has been set to 10.
@@ -470,29 +483,33 @@ Based on other studies that explore the relationship between the spatial of tree
 \subsection*{Proportion of transformed pixels by their original LULC class}
 
 The relationship between the number of transformed candidate pixels by their original LULC class and the overall proportion of transformed candidate pixels is shown in \autoref{fig:scenario-lulc-barplot}.
-\begin{figure}
-  \centering
-  \includegraphics[width=.6\textwidth]{figures/scenario-lulc-barplot}%
-  \caption{\label{fig:scenario-lulc-barplot} Number of transformed pixels by its original LULC class for an overall proportion of transformed pixels of 25, 50, 75 and 100\%. The lines at the top of the bars represent the 95\% confidence intervals. The bar heights and the confidence intervals are computed out of all the simulation runs and sampling approaches. See the Jupyter Notebook at \hyperref[sec:si-scenarios]{section S2.1} for the detailed numbers of the figure.}
-\end{figure}
-Changing a 25, 50, 75 and 100\% of the candidate pixels corresponds to a total number of pixels changed of 118880, 237760, 356640 and 475520 respectively.
-In the latter case, i.e., increasing the tree canopy in all the possible pixels, a 61.50\% of the pixels correspond to the ``garden'' LULC class, followed by ``road, path'', ``building'', ``other impervious'', which account for a a 18.01, 10.81 and 7.69\% respectively. Finally, the LULC classes of ``sidewalk'' and ``traffic island'' constitute only a 1.67 and 0.3\% of the  pixels where the tree canopy can be increased.
+Changing a 25, 50, 75 and 100\% of the candidate pixels corresponds to a total number of pixels changed of 118880, 237760, 356640 and 475520, which account for a total area of 1188.8, 2377.6, 3566.4 and 4755.2 hectares respectively.
+In the latter case, i.e., increasing the tree canopy in all the possible pixels, 61.50\% of the pixels correspond to the ``garden'' LULC class, followed by ``road, path'', ``building'', ``other impervious'', (18.01, 10.81 and 7.69\%, respectively). Finally, the LULC classes of ``sidewalk'' and ``traffic island'' constitute only 1.67 and 0.3\% of the  pixels where the tree canopy can be increased.
 % changing a 25, 50, 75 and 100\% of the potential pixels corresponds to a total number of pixels changed of 118880, 237760, 356640 and 475520 respectively.
 % On average over all the simulation runs and sampling approaches,
 The differences when considering the sampling approaches separately are small relative to the total number of transformed candidate pixels.
 The largest differences between sampling approaches can be noted in the number of transformed pixels that originally belong to the ``garden'' class.
 % which the clustering approach consistently transforms a larger share of pixels of the ``garden''
-When transforming a 25, 50 and 75\% of the candidate pixels, clustering respectively transforms (on average among the simulation runs) a 0.90, 0.38 and 0.12\% more garden pixels than random sampling, and a 1.28, 0.76 and 0.43\% more garden pixels than the scattering approach (\autoref{fig:scenario-lulc-barplot-comparison}). 
-\begin{figure}
-  \begin{adjustwidth}{-.4\textwidth}{0cm}  
-    \centering
-    \includegraphics[width=\linewidth]{figures/scenario-lulc-barplot-comparison}
-    \caption{\label{fig:scenario-lulc-barplot-comparison} Effect of the sampling approach on the number of transformed pixels by its original LULC class for an overall proportion of transformed pixels of 25, 50 and 75\%. The lines at the top of the bars represent the 95\% confidence intervals. The bar heights and the confidence intervals are computed out of all the simulation runs. See the Jupyter Notebook at \hyperref[sec:si-scenarios]{section S2.1} for the detailed numbers of the figure.}
-  \end{adjustwidth}
-\end{figure}
+When transforming 25, 50 and 75\% of the candidate pixels, clustering respectively transforms (on average among the simulation runs) a 0.90, 0.38 and 0.12\% more garden pixels than random sampling, and 1.28, 0.76 and 0.43\% more garden pixels than the scattering approach (\autoref{fig:scenario-lulc-barplot-comparison}). 
 
 % CI are of course, inexistent when changing all the possible pixels
 % The confidence intervals are very small for all the proportions of pixels changed, which reflects the constraints imposed by the existing urban fabric.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=.6\textwidth]{figures/scenario-lulc-barplot}%
+  \caption{\label{fig:scenario-lulc-barplot} Number of transformed pixels by its original LULC class for an overall proportion of transformed pixels of 25, 50, 75 and 100\%. The lines at the top of the bars represent the 95\% confidence intervals. The bar heights and the confidence intervals are computed out of all the simulation runs and sampling approaches. See the Jupyter Notebook at \hyperref[sec:si-scenarios]{section S2.1} for the detailed numbers of the figure.}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{adjustwidth}{-.4\textwidth}{0cm}  
+    \centering
+    \includegraphics[width=\linewidth]{figures/scenario-lulc-barplot-comparison}
+    \caption{\label{fig:scenario-lulc-barplot-comparison}
+      Comparison of between the number of transformed pixels by its original LULC class with the random sampling approach and the scattering ($N_{random} - N_{scatter}$, left subplot) and the clustering ($N_{random} - N_{cluster}$, right subplot) selection approaches, for an overall proportion of transformed pixels of 25, 50 and 75\%.
+      The lines at the top of the bars represent the 95\% confidence intervals. The bar heights and the confidence intervals are computed out of all the simulation runs. See the Jupyter Notebook at \hyperref[sec:si-scenarios]{section S2.1} for the detailed numbers of the figure.}
+  \end{adjustwidth}
+\end{figure}
 
 
 \subsection*{Simulated LULC, temperature and heat mitigation maps}
@@ -533,9 +550,9 @@ The LULC, temperature and heat mitigation maps for the scenarios generated by tr
     \caption{\label{fig:scenario-maps} Simulated LULC (top), temperature (middle) and heat mitigation (bottom) maps by transforming a 25, 50, 75 and 100\% of the candidate pixels to its corresponding LULC code with high tree canopy cover. The pixel values of each map are aggregated out of all the sampling approaches and simulation runs, i.e., the LULC maps show the mode, whereas the temperature and heat mitigation maps show the average. The axes tick labels display the Swiss CH1903+/LV95 coordinates. See the Jupyter Notebook at \hyperref[sec:si-scenarios]{section S2.1} for the detailed numbers of the figure.}
   \end{adjustwidth}
 \end{figure}
-When changing a 25, 50, 75 and 100\% of the candidate pixels, the maximum temperature $T$ for the reference date, i.e., 26.05$\degree C$, is progressively reduced to 25.77, 25.30, 24.82 and 24.49 $\degree C$ respectively, while the magnitude of maximum heat mitigation $T - T_{obs}$ increases from 0.49, 1.17, 1.81 and 2.22$\degree C$ respectively.
+When changing 25, 50, 75 and 100\% of the candidate pixels, the maximum temperature $T$ for the reference date, i.e., 26.05$\degree C$, is progressively reduced to 25.77, 25.30, 24.82 and 24.49$\degree C$ respectively, while the magnitude of maximum heat mitigation ($T - T_{obs}$) increases from 0.49, 1.17, 1.81 and 2.22$\degree C$ respectively.
 The largest heat mitigation magnitudes occur in the most urbanized parts, which are located along the main transportation axes.
-The relationship between the proportion of candidate pixels transformed and the simulated distribution of air temperature can be approximated by a straight line with a negative slope (see \autoref{fig:si-scenario-T-regplot} and \autoref{fig:si-scenario-T-hists} for more details about this relationship).
+The relationship between the proportion of candidate pixels transformed and the simulated distribution of air temperature can be approximated as a linear relationship with a negative slope (see \autoref{fig:si-scenario-T-regplot} and \autoref{fig:si-scenario-T-hists} for more details about this relationship).
 % The strength of such a fit suggests that the constraints on the urban heat mitigation imposed by the existing urban fabric .
 
 
@@ -550,14 +567,14 @@ The relationships between the landscape metrics of each scenario run and the cor
   \end{adjustwidth}
 \end{figure}
 % The values of PLAND, which are directly related to the proportion of tranformed candidate pixesl
-The proportion of landscape (PLAND) occupied by pixels with high tree canopy cover range from 17.26 to 53.37\%. As a composition metric, PLAND is directly related to the proportion of transformed candidate pixels, and the start and end of the PLAND value range correspond to transforming 0 and 100\% of the candidate pixels respectively.
+The proportion of landscape (PLAND) occupied by pixels with high tree canopy cover range from 17.26 to 53.37\%. As a composition metric, PLAND is directly related to the proportion of transformed candidate pixels, and the extreme values of the PLAND range correspond to transforming 0 and 100\% of the candidate pixels respectively.
 The relationship between PLAND and the average simulated temperature of each scenario $\overline{T}$ shows a sharp monotonic decrease. However, for the same PLAND values, clustering the transformed pixels to other pixels with high tree canopy cover consistently leads to higher $\overline{T}$ than scattering or randomly sampling --- the latter approaches show almost indistinguishable PLAND and $\overline{T}$ relationship.
 % With the exception of the mean shape index,
 
 Regarding the configuration metrics, the values of the mean patch area (AREA\_MN) show that the clustering and random sampling approaches lead to larger patches of high tree canopy cover than the scattering approach.
-When transforming a 12.5 and 25\% of the candidate pixels, clustering them to other pixels of high tree canopy cover increases AREA\_MN from 0.14 to 0.54 hectares respectively (on average over the simulation runs). For a 37.5\% of overall transformed candidate pixels in the clustering approach, AREA\_MN shows a sudden decline to 0.20 hectares, followed by a monotonic increase that reaches 1.52 hectares when all the candidate pixels are transformed. Such a discernable kink in the computed AREA\_MN reveals characteristics of the existing urban fabric, and describes the point after which all the candidate pixels that are adjacent to other pixels of high tree canopy have been transformed and hence new pixels have to be allocated as part of new (and smaller) patches.
+When transforming a 12.5 and 25\% of the candidate pixels, clustering them to other pixels of high tree canopy cover increases AREA\_MN from 0.14 to 0.54 hectares respectively (on average over the simulation runs). For 37.5\% of transformed candidate pixels in the clustering approach, AREA\_MN shows a sudden decline to 0.20 hectares, followed by a monotonic increase that reaches 1.52 hectares when all the candidate pixels are transformed. Such a discernable kink in the computed AREA\_MN reveals characteristics of the existing urban fabric, and describes the point after which all the candidate pixels that are adjacent to other pixels of high tree canopy have been transformed and hence new pixels have to be allocated as part of new (and smaller) patches.
 % computed values for the metric show no discenable relationship with neither the proportion 
-The same kink is even more notable for the mean shape index (SHAPE\_MN), yet the computed values show a very irregular trend accross the different scenario configurations, and it is the only metric where differences can be noted among scenario runs with the same configuration. The only consistency that is that the scattering approach tends to lower SHAPE\_MN values than randomly sampling the transformed pixels, which is likely due to the larger abundance of simple single-pixel patches in the former approach.
+The same kink is even more notable for the mean shape index (SHAPE\_MN), yet the computed values show a very irregular pattern accross the different scenario configurations, and it is the only metric where differences can be noted among scenario runs with the same configuration. The only consistency is that the scattering approach tends to lower SHAPE\_MN values than randomly sampling the transformed pixels, which is likely due to the larger abundance of simple single-pixel patches in the former approach.
 Finally, the clustering approach results in lower edge density (ED) values than in the scattering and random sampling approaches, which show a very similar trend.
 % The observed pattern is consistent with the notion that clustering new pixels to the edges of existing patches accounts for less overall edge length than scattering the same amount of new pixels.
 The observed pattern is consistent with the notion that growing existing patches by clustering the new pixels to them accounts for less total edge length than scattering the same amount of new pixels in a leapfrog manner.
@@ -602,12 +619,15 @@ The way in which the transformed pixels are sampled has significant effects on t
   \begin{adjustwidth}{-.4\textwidth}{0cm}  
     \centering
     \includegraphics[width=\linewidth]{figures/human-exposure-comparison}
-    \caption{\label{fig:human-exposure-comparison} Effect of the sampling approach on the population exposed to temperatures higher than 21, 22, 23, 24, 25 and 26$\degree$C for an overall proportion of transformed pixels of 0, 25, 50 and 75\%. The lines at the top of the bars represent the 95\% confidence intervals. The bar heights and the confidence intervals are computed out of all the simulation runs. See the Jupyter Notebook at \hyperref[sec:si-human-exposure]{section S2.3} for the detailed numbers of the figure.}
+    \caption{\label{fig:human-exposure-comparison}
+      % Effect of the sampling approach on the population exposed to temperatures higher than 21, 22, 23, 24, 25 and 26$\degree$C for an overall proportion of transformed pixels of 0, 25, 50 and 75\%.
+      Comparison of between the population exposed to temperatures higher than 21, 22, 23, 24, 25 and 26$\degree$C with the random sampling approach and the scattering ($N_{random} - N_{scatter}$, left subplot) and the clustering ($N_{random} - N_{cluster}$, right subplot) selection approaches, for an overall proportion of transformed pixels of 25, 50 and 75\%.
+      The lines at the top of the bars represent the 95\% confidence intervals. The bar heights and the confidence intervals are computed out of all the simulation runs. See the Jupyter Notebook at \hyperref[sec:si-human-exposure]{section S2.3} for the detailed numbers of the figure.}
   \end{adjustwidth}
 \end{figure}
 Overall, scattering the transformed pixels to avoid forming a continuous tree canopy appears as the most effective approach to reduce the human exposure to the highest temperatures, followed by random sampling.
-When transforming a 25 and 50\% of the candidate pixels with the scattering approach, the number of dwellers exposed to temperatures over 25$\degree$C diminishes from 124073 to 65108 and 4498 respectively. % (which is 4.57 an 64.57\% larger than the corresponding reduction when averaged among the three approaches)
-Such a reduction is larger than its random sampling counterpart by 3125 and 8223 dwellers respectively, and larger than its clustering approach counterpart by 9359 and 21388 dwellers respectively.
+When transforming a 25 and 50\% of the candidate pixels with the scattering approach, the number of dwellers exposed to temperatures over 25$\degree$C decreases from 124073 to 65108 and 4498 respectively. % (which is 4.57 an 64.57\% larger than the corresponding reduction when averaged among the three approaches)
+Such a reduction is larger than its random sampling counterpart by 3125 and 8223 dwellers respectively, and larger than its clustering approach counterpart by 9359 and 21388 dwellers respectively (\autoref{fig:human-exposure-comparison}).
 % which is larger than its counterpart when reduction  corresponds to  less dwellers than when transforming the same amount of pixels with random sampling approach, and 9359 and 21388.
 
 
@@ -630,22 +650,24 @@ The scenarios simulated in this study map locations where the tree canopy cover 
 % The effect of the spatial configuration of trees on its urban cooling effectiveness depends on how it affects the shading and evapotranspiration processes. Such a relationship is know to be highly complex and dependent on the ecological context \cite{zhou2017effects}, tree species \cite{jiao2017patch}
 % The simulated scenarios in Lausanne indicate that given the same proportion of tree canopy cover, a scattered configuration might result in more effective urban heat mitigation than a clustered one, which is in line with previous studies in humid climates \cite{kong2014effects,estoque2017effects,zhou2017effects,yu2018strong,nastran2019urban}.
 The results indicate that given the same proportion of tree canopy cover, a scattered configuration might lead to more effective urban heat mitigation than a clustered one, which is in line with previous studies in humid climates \cite{zhou2011does,kong2014effects,estoque2017effects,zhou2017effects,yu2018strong,nastran2019urban}.
-Nevertheless, the results suggest that effect of the spatial configuration is secondary when compared to the effect of the composition, i.e., proportion of tree cover.
+Nevertheless, the results suggest that effect of the spatial configuration (measured by the metrics AREA\_MN, SHAPE\_MN and ED) is secondary when compared to the effect of the composition (measured by the PLAND metric).
 % Overall, the effect of the spatial configuration of trees on its urban cooling effectiveness depends on how it affects the shading and evapotranspiration processes, which is known to be highly complex relationship that is strongly mediated by the tree species as well as the local climatic and environmental conditions \cite{zhou2017effects,jiao2017patch,yu2018strong,wang2020significant}. Furthermore, the cooling effects of tree canopy cover are scale-dependent \cite{li2013relationship,estoque2017effects,yan2019testing,wang2020significant,terfa2020spatial}.
 % Overall, the effect of the spatial configuration of trees on its urban cooling effectiveness depends on how it affects the shading and evapotranspiration processes.
 Overall, the effect of the spatial configuration of trees on its urban heat mitigation depends on how it affects the shading and evapotranspiration processes.
 Such a relationship is known to be strongly mediated by the tree species, background climatic and environmental conditions as well as the spatial scale \cite{li2013relationship,estoque2017effects,zhou2017effects,jiao2017patch,yu2018strong,yan2019testing,wang2020significant,terfa2020spatial}.
-In order to better represent the effects of the spatial configuration of the tree canopy, the InVEST urban cooling model must be further validated with experiments at the neighborhood scale to ensure that it provides an appropriate city-scale depiction of how the urban heat mitigation mechanisms operate at finer scales.
 
 % 2. NON-LINEARITIES AND THRESHOLDS
+% In order to better represent the effects of the spatial configuration of the tree canopy, the InVEST urban cooling model must be further validated with experiments at the neighborhood scale to ensure that it provides an appropriate city-scale depiction of how the urban heat mitigation mechanisms operate at finer scales.
+The spatial effects observed in the results are due to the InVEST model equations representing air mixing and the effect of parks. In order to ascertain these effects, the InVEST urban cooling model must be further validated with experiments at the neighborhood scale to ensure that it provides an appropriate city-scale depiction of how the urban heat mitigation mechanisms operate at finer scales.
 % The proposed approach provides an effective interface to spatially evaluate mitigation strategies. Further refinement of the urban cooling model (i.e., including non-linearities) might enable further explorations (e.g., thresholds).
 % Multi-scale perspective \cite{wang2020spatial}
 % gains are orthogonal to those of green roofs
 % We also need to compare the urban cooling model to more fine-grained models (e.g., three-dimensional models at the neighborhood scale) to find out whether the urban cooling model provides an adequate averaging of the neighborhood scale behaviour. We have the required high-resolution data for most parts (e.g., cadastre, tree canopy) but not high-resolution air temperature measurements (in space and time). Note that LST is not good enough
 % While the InVEST urban cooling model provides an effective method to simulate urban heat mitigation from LULC rasters at the urban agglomeration scale \cite{bosch2020spatially}, it must be further validated with experiments at the neighborhood scale to ensure that it provides an appropriate upscale representation of how the urban heat mitigation mechanisms operate at finer scales.
-On the other hand, the InVEST urban cooling models presents limitations regarding the simplified and homogeneous way in which the air is mixed, as well as the cooling effects of large green spaces \cite{sharp2020invest,bosch2020spatially}.
+% On the other hand, the InVEST urban cooling models presents limitations regarding the simplified and homogeneous way in which the air is mixed, as well as the cooling effects of large green spaces \cite{sharp2020invest,bosch2020spatially}.
+In fact, the InVEST urban cooling model presents limitations regarding the simplified and homogeneous way in which the air is mixed, as well as the cooling effects of large green spaces \cite{sharp2020invest,bosch2020spatially}.
 As a result, the relationship between the proportion of tree canopy cover and the magnitude of the urban heat mitigation reported in this work is practically linear, and the temperature differences between spatially clustering or scattering the new tree canopy cover are limited.
-Nonetheless, in complex terrains such as the Lausanne agglomeration, models with uniform weighting of space show considerable deviations from the observed spatial patterns of air temperature \cite{frei2014interpolation}. Moreover, the cooling effects of large green spaces have been found to be non-proportional to their area and shape complexity \cite{chen2014effect,bao2016assessing,du2017quantifying}.
+Nonetheless, in complex terrains such as the Lausanne agglomeration, models with uniform weighting of space show considerable deviations from the observed spatial patterns of air temperature \cite{frei2014interpolation,labedens2019modeling}. Moreover, the cooling effects of large green spaces have been found to be non-proportional to their area and shape complexity \cite{chen2014effect,bao2016assessing,du2017quantifying}.
 % Including non-linearities of this kind may not only make the urban cooling model more realistic but also more useful for urban planning, e.g., by suggesting thresholds in the relatinship between the proportion of tree canopy cover and the simulated heat mitigation that ensure ``optimal'' spending.
 Improving how these non-linear components are represented in the InVEST urban cooling model could enhance not only its validity, but also its value to urban planning by identifying thresholds and regime changes in the cooling efficiency of additional tree planting.
 % MAYBE: while there is scope for improvement, the current implementation of the model suggests that there are thresholds regarding human exposure.
@@ -673,9 +695,9 @@ Similarly, InVEST urban cooling model might be coupled with models of LULC chang
 % TODO: different impacts in different cities \cite{zhou2017effects,gret2020urban}
 
 
-\subsection*{Implications to urban planning}
+\subsection*{Implications for urban planning in Lausanne}
 
-The spatiotemporal patterns of LULC change observed during the last 40 years in the Lausanne agglomeration have been characterized by infilling development and a progressive coalescensce of the artificial surfaces in its inner ring \cite{bosch2020spatiotemporal}.
+The spatiotemporal patterns of LULC change observed during the last 40 years in the Lausanne agglomeration have been characterized by infilling development and a progressive coalescensce of artificial surfaces in its inner ring \cite{bosch2020spatiotemporal}.
 % Overall decrease of urban green space in European cities due to infill development \cite{haaland2015challenges}.
 Such an infilling trend urges for careful evaluation of the beneficial ecosystem services provided by urban green spaces, which should be balanced against the adverse consequences of urban sprawl \cite{haaland2015challenges,artmann2019urban}.
 
@@ -703,13 +725,13 @@ Furthermore, the association between temperature and mortality in extreme heat e
 
 \section*{Conclusion}
 % TODO: conclusions
-The scenarios simulated in this study represent a new form of spatially exploring the heat mitigation potential provided by realistic modifications of the urban fabric, and allow evaluating the cooling effects of both the abundance and spatial configuration of the tree canopy cover.
+The scenarios simulated in this study represent a new way of spatially exploring the heat mitigation potential provided by modifications of the urban fabric, and allow evaluating the cooling effects of both the abundance and spatial configuration of the tree canopy cover.
 The results map locations where the existing tree canopy cover of the urban agglomeration of Lausanne can be increased, and show an urban cooling potential for urban nighttime temperatures of more than 2$\degree$C.
 % Additionally, the number of dwellers exposed to nighttime temperatures over 24$\degree$C can be reduced from 217051 to 31905, which respectively represents a 78.40 and 11.52\% of the total population in the study area. ALSO SCATTERING
 Additionally, the simulations suggest that the spatial configuration in which the tree canopy is increased influences its heat mitigation effects.
 The configuration effects become more significant when considering the impacts on the urban population, and small increases in the tree canopy can result in important reductions in the number of dwellers exposed to the highest temperatures.
-Overall, the presented approach provides a novel way to explore how the urban tree canopy of can be exploited to reduce the heat stress.
-Future studies can extend the preliminary experiments and incorporate them to broader frameworks to assess the provision of other ecosystem services in urban areas.
+Overall, the presented approach provides a novel way to explore how the urban tree canopy can be exploited to reduce heat stress.
+Future studies can extend the analyses by assessing the provision of other ecosystem services in the various tree canopy strategies presented here.
 
 
 \section*{Supporting Information}
