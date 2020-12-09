@@ -1,5 +1,5 @@
-.PHONY: reclassify station_measurements ref_et calibrate_ucm tair_ucm scenarios \
-	scenario_metrics statpop
+.PHONY: reclassify station_measurements ref_et tair_ucm scenarios \
+	scenario_metrics statpop download_zenodo_data
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -48,11 +48,14 @@ DOWNLOAD_S3_PY := $(CODE_DIR)/download_s3.py
 ## 1. Download the data
 ### variables
 AGGLOM_EXTENT_DIR := $(DATA_RAW_DIR)/agglom-extent
-AGGLOM_EXTENT_FILE_KEY = urban-footprinter/lausanne-agglom/agglom-extent.zip
+AGGLOM_EXTENT_ZENODO_URI = \
+	https://zenodo.org/record/4311544/files/agglom-extent.zip?download=1
 AGGLOM_EXTENT_SHP := $(AGGLOM_EXTENT_DIR)/agglom-extent.shp
-AGGLOM_LULC_FILE_KEY = urban-footprinter/lausanne-agglom/agglom-lulc.tif
+AGGLOM_LULC_ZENODO_URI = \
+	https://zenodo.org/record/4311544/files/agglom-lulc.tif?download=1
 AGGLOM_LULC_TIF := $(DATA_RAW_DIR)/agglom-lulc.tif
-TREE_CANOPY_FILE_KEY = detectree/lausanne-agglom/tree-canopy.tif
+TREE_CANOPY_ZENODO_URI = \
+	https://zenodo.org/record/4310112/files/tree-canopy.tif?download=1
 TREE_CANOPY_TIF := $(DATA_RAW_DIR)/tree-canopy.tif
 CADASTRE_DIR := $(DATA_RAW_DIR)/cadastre
 CADASTRE_FILE_KEY = cantons/vaud/cadastre/Cadastre_agglomeration.zip
@@ -66,14 +69,14 @@ MAKE_CADASTRE_SHP_FROM_ZIP_PY := $(CODE_DIR)/make_cadastre_shp_from_zip.py
 $(AGGLOM_EXTENT_DIR): | $(DATA_RAW_DIR)
 	mkdir $@
 $(AGGLOM_EXTENT_DIR)/%.zip: | $(AGGLOM_EXTENT_DIR)
-	python $(DOWNLOAD_S3_PY) $(AGGLOM_EXTENT_FILE_KEY) $@
+	wget $(AGGLOM_EXTENT_ZENODO_URI) -O $@
 $(AGGLOM_EXTENT_DIR)/%.shp: $(AGGLOM_EXTENT_DIR)/%.zip
 	unzip $< -d $(AGGLOM_EXTENT_DIR)
 	touch $@
 $(AGGLOM_LULC_TIF): | $(DATA_RAW_DIR)
-	python $(DOWNLOAD_S3_PY) $(AGGLOM_LULC_FILE_KEY) $@
+	wget $(AGGLOM_LULC_ZENODO_URI) -O $@
 $(TREE_CANOPY_TIF): | $(DATA_RAW_DIR)
-	python $(DOWNLOAD_S3_PY) $(TREE_CANOPY_FILE_KEY) $@
+	wget $(TREE_CANOPY_ZENODO_URI) -O $@
 $(CADASTRE_DIR): | $(DATA_RAW_DIR)
 	mkdir $@
 $(CADASTRE_DIR)/%.zip: | $(CADASTRE_DIR)
@@ -86,6 +89,8 @@ $(CADASTRE_DIR)/%.shp: $(CADASTRE_DIR)/%.zip $(MAKE_CADASTRE_SHP_FROM_ZIP_PY)
 ## 2. Reclassify according to tree cover
 ### variables
 # BIOPHYSICAL_TABLE_FILE_KEY := other/biophysical-table.csv
+BIOPHYSICAL_TABLE_ZENODO_URI = \
+	https://zenodo.org/record/4316572/files/biophysical-table.csv?download=1
 BIOPHYSICAL_TABLE_CSV := $(DATA_RAW_DIR)/biophysical-table.csv
 DATA_RECLASSIF_DIR := $(DATA_INTERIM_DIR)/reclassif
 TREE_COVER_TIF := $(DATA_RECLASSIF_DIR)/tree-cover.tif
@@ -109,6 +114,8 @@ $(BLDG_COVER_TIF): $(AGGLOM_LULC_TIF) $(CADASTRE_SHP) \
 	$(MAKE_PIXEL_BLDG_COVER_PY) | $(DATA_RECLASSIF_DIR)
 	python $(MAKE_PIXEL_BLDG_COVER_PY) $(AGGLOM_LULC_TIF) \
 		$(CADASTRE_SHP) $@
+$(BIOPHYSICAL_TABLE_CSV): | $(DATA_RAW_DIR)
+	wget $(BIOPHYSICAL_TABLE_ZENODO_URI) -O $@
 $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV): $(TREE_COVER_TIF) \
 	$(BLDG_COVER_TIF) $(BIOPHYSICAL_TABLE_CSV) $(MAKE_RECLASSIFY_PY) \
 	| $(DATA_PROCESSED_DIR)
@@ -125,11 +132,13 @@ reclassify: $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV)
 
 ### variables
 STATION_RAW_DIR := $(DATA_RAW_DIR)/stations
-STATION_RAW_FILENAMES = station-locations.csv agrometeo-tre200s0.csv \
-	meteoswiss-lausanne-tre000s0.zip meteoswiss-lausanne-tre200s0.zip \
-	WSLLAF.txt VaudAir_EnvoiTemp20180101-20200128_EPFL_20200129.xlsx
+STATION_RAW_FILENAMES = agrometeo-tre200s0.csv meteoswiss-lausanne-tre000s0.zip \
+	meteoswiss-lausanne-tre200s0.zip WSLLAF.txt \
+	VaudAir_EnvoiTemp20180101-20200128_EPFL_20200129.xlsx
 STATION_RAW_FILEPATHS := $(addprefix $(STATION_RAW_DIR)/, \
 	$(STATION_RAW_FILENAMES))
+STATION_LOCATIONS_ZENODO_URI = \
+	https://zenodo.org/record/4316572/files/station-locations.csv?download=1
 STATION_LOCATIONS_CSV := $(STATION_RAW_DIR)/station-locations.csv
 STATION_T_CSV := $(DATA_INTERIM_DIR)/station-t.csv
 #### code
@@ -138,6 +147,8 @@ MAKE_STATION_T_DF_PY := $(CODE_DIR)/make_station_tair_df.py
 ### rules
 $(STATION_RAW_DIR): | $(DATA_RAW_DIR)
 	mkdir $@
+$(STATION_LOCATIONS_CSV): | $(STATION_RAW_DIR)
+	wget $(STATION_LOCATIONS_ZENODO_URI) -O $@
 define DOWNLOAD_STATION_DATA
 $(STATION_RAW_DIR)/$(STATION_RAW_FILENAME): | $(STATION_RAW_DIR)
 	python $(DOWNLOAD_S3_PY) \
@@ -158,7 +169,6 @@ station_measurements: $(STATION_T_CSV)
 ## 0. Preprocess the inputs required to simulate scenario temperatures with the
 ##    InVEST urban cooling model
 ### variables
-CALIBRATED_PARAMS_JSON := $(DATA_RAW_DIR)/invest-calibrated-params.json
 REF_ET_TIF := $(DATA_PROCESSED_DIR)/ref-et.tif
 #### code
 CODE_SCENARIOS_DIR := $(CODE_DIR)/scenarios
@@ -173,13 +183,19 @@ ref_et: $(REF_ET_TIF)
 
 ## 1. Generate scenario datasets
 ### variables
+CALIBRATED_PARAMS_ZENODO_URI = \
+	https://zenodo.org/record/4316572/files/invest-calibrated-params.json?download=1
+CALIBRATED_PARAMS_JSON := $(DATA_RAW_DIR)/invest-calibrated-params.json
 SCENARIO_DS_NC := $(DATA_PROCESSED_DIR)/scenarios.nc
 #### code
 MAKE_SCENARIO_DS_PY := $(CODE_SCENARIOS_DIR)/make_scenario_ds.py
 
 ### rules
+$(CALIBRATED_PARAMS_JSON): | $(DATA_RAW_DIR)
+	wget $(CALIBRATED_PARAMS_ZENODO_URI) -O $@
 $(SCENARIO_DS_NC): $(RECLASSIF_LULC_TIF) $(RECLASSIF_TABLE_CSV) \
-	$(STATION_T_CSV) $(REF_ET_TIF) $(MAKE_SCENARIO_DS_PY)
+	$(STATION_T_CSV) $(REF_ET_TIF) $(CALIBRATED_PARAMS_JSON) \
+	$(MAKE_SCENARIO_DS_PY)
 	python $(MAKE_SCENARIO_DS_PY) $(RECLASSIF_LULC_TIF) \
 		$(RECLASSIF_TABLE_CSV) $(STATION_T_CSV) $(REF_ET_TIF) \
 		$(CALIBRATED_PARAMS_JSON) $@
@@ -207,7 +223,6 @@ scenario_metrics: $(SCENARIO_METRICS_CSV)
 STATPOP_URI = https://www.bfs.admin.ch/bfsstatic/dam/assets/14027479/master
 STATPOP_DIR := $(DATA_RAW_DIR)/statpop
 STATPOP_CSV := $(STATPOP_DIR)/statpop-2019.csv
-#### code
 
 ### rules
 $(STATPOP_DIR): | $(DATA_RAW_DIR)
@@ -219,6 +234,34 @@ $(STATPOP_DIR)/%.csv: $(STATPOP_DIR)/%.zip
 	mv $(STATPOP_DIR)/STATPOP2019.csv $(STATPOP_CSV)
 	touch $@
 statpop: $(STATPOP_CSV)
+
+
+#################################################################################
+# DEDICATED ZENODO DATA https://zenodo.org/record/4316572
+
+## variables
+BLDG_COVER_ZENODO_URI = \
+	https://zenodo.org/record/4314832/files/bldg-cover.tif?download=1
+STATION_T_ZENODO_URI = \
+	https://zenodo.org/record/4316572/files/station-t.csv?download=1
+REF_ET_ZENODO_URI = https://zenodo.org/record/4316572/files/ref-et.tif?download=1
+
+## rules
+### This target serves to bypass some of the steps of the computational workflow
+### which require access to proprietary data that we cannot share. This target
+### will download some intermediate targets and tweak some prerequisites so that
+### the computational workflow can be executed until the end so that all the
+### results can be reproduced
+download_zenodo_data: $(AGGLOM_LULC_TIF) $(AGGLOM_EXTENT_SHP) | \
+	$(CADASTRE_DIR) $(DATA_RECLASSIF_DIR) $(DATA_INTERIM_DIR) \
+	$(STATION_RAW_DIR) $(DATA_PROCESSED_DIR)
+	touch $(CADASTRE_SHP)
+	wget --no-use-server-timestamps $(BLDG_COVER_ZENODO_URI) -O \
+		$(BLDG_COVER_TIF)
+	touch $(STATION_RAW_FILEPATHS)
+	wget --no-use-server-timestamps $(STATION_T_ZENODO_URI) -O \
+		$(STATION_T_CSV)
+	wget --no-use-server-timestamps $(REF_ET_ZENODO_URI) -O $(REF_ET_TIF)
 
 
 #################################################################################
