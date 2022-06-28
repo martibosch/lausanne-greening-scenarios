@@ -5,7 +5,7 @@
 
 Spatially-explicit simulation of urban heat mitigation by increasing the tree canopy cover in Lausanne
 
-**Citation**: Bosch, M., Locatelli, M., Hamel, P., Jaligot, R., Chenal, J., and Joost, S. 2020. "Evaluating urban greening scenarios for urban heat mitigation: a spatially-explicit approach". Preprint available at *bioRxiv*. [10.1101/2020.11.09.373779](https://doi.org/10.1101/2020.11.09.373779)
+**Citation**: Bosch, M., Locatelli, M., Hamel, P., Jaligot, R., Chenal, J., and Joost, S. 2020. "Evaluating urban greening scenarios for urban heat mitigation: a spatially-explicit approach". *Royal Society Open Science 8(12): 202174*. [10.1098/rsos.202174](https://doi.org/10.1098/rsos.202174)
 
 ![LULC change maps](reports/figures/scenario-lulc-maps.png)
 ![Temperature maps](reports/figures/scenario-T-maps.png)
